@@ -1,6 +1,6 @@
 package com.telco.management.service.cache;
 
-import com.telco.management.dto.CacheStatus;
+import com.telco.common.dto.CacheStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

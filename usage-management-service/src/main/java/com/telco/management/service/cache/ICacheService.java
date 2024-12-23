@@ -1,7 +1,7 @@
 package com.telco.management.service.cache;
 
-import com.telco.management.dto.CacheStatus;
 import java.util.Optional;
+import com.telco.common.dto.CacheStatus;
 
 public interface ICacheService<T> {
     Optional<T> get(String key);
