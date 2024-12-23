@@ -26,6 +26,6 @@
         <module name="usage-management.usage-query-service.main" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="23" />
+    <bytecodeTargetLevel target="17" />
   </component>
 </project>

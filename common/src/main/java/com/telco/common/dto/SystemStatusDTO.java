@@ -18,28 +18,7 @@ public class SystemStatusDTO {
     private DBStatus dbStatus;
 }
 
-@Getter
-@Builder
-class CacheStatus {
-    private long totalSize;
-    private long usedSize;
-    private long hitCount;
-    private long missCount;
-}
 
-@Getter
-@Builder
-class QueueStatus {
-    private long queueSize;
-    private long deadLetterQueueSize;
-    private long processedCount;
-    private long failureCount;
-}
 
-@Getter
-@Builder
-class DBStatus {
-    private long connectionCount;
-    private long activeQueries;
-    private String status;
-}
+
+

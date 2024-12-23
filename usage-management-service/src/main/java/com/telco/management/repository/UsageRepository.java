@@ -1,6 +1,6 @@
 package com.telco.management.repository;
 
-import com.telco.management.entity.Usage;  // 명시적 import 추가
+import com.telco.common.entity.Usage;  // 명시적 import 추가
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import jakarta.persistence.LockModeType;
 import java.util.Optional;
-import java.util.List;
 
 /**
  * 사용량 데이터 저장소

@@ -1,6 +1,6 @@
 package com.telco.query.service;
 
-import com.telco.common.dto.SystemStatusDTO.CacheStatus;
+import com.telco.common.dto.CacheStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,19 +9,21 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RedisCacheService<T> implements ICacheService<T> {
-    
+
     private final RedisTemplate<String, T> redisTemplate;
     private final RetryTemplate retryTemplate;
-    
+
     @Value("${spring.redis.ttl:600}")
     private long redisTtl;
-    
+
     @Override
     public Optional<T> get(String key) {
         try {
@@ -37,7 +39,7 @@ public class RedisCacheService<T> implements ICacheService<T> {
             return Optional.empty();
         }
     }
-    
+
     @Override
     public void set(String key, T value) {
         try {
@@ -49,7 +51,7 @@ public class RedisCacheService<T> implements ICacheService<T> {
             log.error("Failed to set value to cache - key: {}, error: {}", key, e.getMessage());
         }
     }
-    
+
     @Override
     public void delete(String key) {
         try {
@@ -61,42 +63,43 @@ public class RedisCacheService<T> implements ICacheService<T> {
             log.error("Failed to delete value from cache - key: {}, error: {}", key, e.getMessage());
         }
     }
-    
+
     @Override
     public CacheStatus getStatus() {
-        return CacheStatus.builder()
-                .totalSize(redisTemplate.getConnectionFactory().getConnection().serverCommands().dbSize())
-                .usedSize(redisTemplate.keys("*").size())
-                .hitCount(getHitCount())
-                .missCount(getMissCount())
-                .build();
-    }
-    
-    private long getHitCount() {
-        return Optional.ofNullable(redisTemplate.getConnectionFactory()
-                .getConnection()
-                .serverCommands()
-                .info("stats"))
-                .map(stats -> extractNumber(stats, "keyspace_hits"))
-                .orElse(0L);
-    }
-    
-    private long getMissCount() {
-        return Optional.ofNullable(redisTemplate.getConnectionFactory()
-                .getConnection()
-                .serverCommands()
-                .info("stats"))
-                .map(stats -> extractNumber(stats, "keyspace_misses"))
-                .orElse(0L);
-    }
-    
-    private long extractNumber(String stats, String key) {
-        String[] lines = stats.split("\n");
-        for (String line : lines) {
-            if (line.startsWith(key)) {
-                return Long.parseLong(line.split(":")[1].trim());
-            }
+        try {
+            Long size = redisTemplate.getConnectionFactory().getConnection().dbSize();
+            return CacheStatus.builder()
+                    .totalSize(size != null ? size : 0L)
+                    .usedSize(Optional.ofNullable(redisTemplate.keys("*")).map(Set::size).orElse(0))
+                    .hitCount(getMetricFromInfo("keyspace_hits"))
+                    .missCount(getMetricFromInfo("keyspace_misses"))
+                    .build();
+        } catch (Exception e) {
+            log.error("Failed to get cache status: {}", e.getMessage());
+            return CacheStatus.builder()
+                    .totalSize(0L)
+                    .usedSize(0L)
+                    .hitCount(0L)
+                    .missCount(0L)
+                    .build();
         }
-        return 0;
+    }
+
+    private long getMetricFromInfo(String metricName) {
+        try {
+            Properties info = redisTemplate.getConnectionFactory()
+                    .getConnection()
+                    .info("stats");
+
+            if (info == null) return 0L;
+
+            String value = info.getProperty(metricName);
+            if (value == null) return 0L;
+
+            return Long.parseLong(value.trim());
+        } catch (Exception e) {
+            log.error("Failed to get metric {}: {}", metricName, e.getMessage());
+            return 0L;
+        }
     }
 }

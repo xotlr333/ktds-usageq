@@ -1,8 +1,8 @@
 package com.telco.query.service;
 
+import com.telco.common.entity.Usage;
 import com.telco.common.dto.UsageDTO;
 import com.telco.common.exception.BizException;
-import com.telco.query.entity.Usage;
 import com.telco.query.mapper.UsageMapper;
 import com.telco.query.repository.UsageRepository;
 import lombok.RequiredArgsConstructor;

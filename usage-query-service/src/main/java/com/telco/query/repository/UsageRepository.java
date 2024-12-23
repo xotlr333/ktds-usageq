@@ -1,6 +1,6 @@
-package com.telco.management.repository;
+package com.telco.query.repository;
 
-import com.telco.management.entity.Usage;
+import com.telco.common.entity.Usage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;

@@ -1,6 +1,6 @@
 plugins {
     id 'org.springframework.boot' version '3.4.0' apply false
-    id 'io.spring.dependency-management' version '1.1.4' apply false
+    id 'io.spring.dependency-management' version '1.1.6' apply false
     id 'java'
 }
 
@@ -8,24 +8,38 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
-    
+
     group = 'com.telco'
     version = '0.0.1-SNAPSHOT'
-    sourceCompatibility = '23'
-    
+    sourceCompatibility = '17'
+
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor
+        }
+    }
+
     repositories {
         mavenCentral()
     }
-    
+
     dependencies {
+        // Spring Boot Core
         implementation 'org.springframework.boot:spring-boot-starter'
         implementation 'org.springframework.boot:spring-boot-starter-validation'
-        
+
+        // Swagger/OpenAPI
+        implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+
+        // Lombok
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
-        
-        implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
-        
+
+        // Test
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    }
+
+    test {
+        useJUnitPlatform()
     }
 }

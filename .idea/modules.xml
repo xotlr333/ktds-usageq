@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/common/usage-management.common.main.iml" filepath="$PROJECT_DIR$/.idea/modules/common/usage-management.common.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/usage-management-service/usage-management.usage-management-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/usage-management-service/usage-management.usage-management-service.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/usage-query-service/usage-management.usage-query-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/usage-query-service/usage-management.usage-query-service.main.iml" />
     </modules>
   </component>
 </project>

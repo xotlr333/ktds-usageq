@@ -2,7 +2,7 @@ package com.telco.management.service;
 
 import com.telco.common.dto.UsageDTO;
 import com.telco.common.dto.UsageUpdateRequest;
-import com.telco.management.entity.*;
+import com.telco.common.entity.*;
 import com.telco.management.mapper.UsageMapper;
 import com.telco.management.repository.UsageRepository;
 import com.telco.management.service.cache.ICacheService;

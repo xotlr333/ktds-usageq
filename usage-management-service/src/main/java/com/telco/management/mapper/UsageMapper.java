@@ -2,7 +2,7 @@ package com.telco.management.mapper;
 
 import com.telco.common.dto.UsageDTO;
 import com.telco.common.dto.UsageDetail;
-import com.telco.management.entity.*;
+import com.telco.common.entity.*;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,9 +20,38 @@ public class UsageMapper {
                 .build();
     }
 
-    private UsageDetail createUsageDetail(BaseUsage usage, String unit) {
+    private UsageDetail createUsageDetail(VoiceUsage usage, String unit) {
         if (usage == null) return null;
+        return UsageDetail.builder()
+                .totalUsage(usage.getTotalUsage())
+                .freeUsage(usage.getFreeUsage())
+                .excessUsage(usage.getExcessUsage())
+                .unit(unit)
+                .build();
+    }
 
+    private UsageDetail createUsageDetail(VideoUsage usage, String unit) {
+        if (usage == null) return null;
+        return UsageDetail.builder()
+                .totalUsage(usage.getTotalUsage())
+                .freeUsage(usage.getFreeUsage())
+                .excessUsage(usage.getExcessUsage())
+                .unit(unit)
+                .build();
+    }
+
+    private UsageDetail createUsageDetail(MessageUsage usage, String unit) {
+        if (usage == null) return null;
+        return UsageDetail.builder()
+                .totalUsage(usage.getTotalUsage())
+                .freeUsage(usage.getFreeUsage())
+                .excessUsage(usage.getExcessUsage())
+                .unit(unit)
+                .build();
+    }
+
+    private UsageDetail createUsageDetail(DataUsage usage, String unit) {
+        if (usage == null) return null;
         return UsageDetail.builder()
                 .totalUsage(usage.getTotalUsage())
                 .freeUsage(usage.getFreeUsage())

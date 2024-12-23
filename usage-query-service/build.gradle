@@ -1,10 +1,29 @@
 dependencies {
+    // Project Dependencies
     implementation project(':common')
+
+    // Spring Boot
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
-    implementation 'org.postgresql:postgresql'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // Database
+    implementation 'org.postgresql:postgresql'
+
+    // QueryDSL
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
     annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
+
+    // Jackson
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // Retry
+    implementation 'org.springframework.retry:spring-retry'
+    implementation 'org.springframework:spring-aspects'
+}
+
+bootJar {
+    archiveFileName = "usage-query-service.jar"
 }
