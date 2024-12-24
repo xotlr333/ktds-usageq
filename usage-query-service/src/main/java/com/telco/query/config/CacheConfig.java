@@ -1,24 +1,18 @@
 package com.telco.query.config;
 
+import com.telco.common.dto.UsageDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.retry.RetryPolicy;
-import org.springframework.retry.backoff.BackOffPolicy;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
-
-import java.time.Duration;
-import java.util.Collections;
-import java.util.HashMap;
 
 @EnableCaching
 @Configuration
@@ -34,16 +28,8 @@ public class CacheConfig {
     private long retryBackoff;
 
     @Bean
-    public RedisCacheConfiguration redisCacheConfiguration() {
-        return RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofSeconds(redisTtl))
-                .serializeKeysWith(SerializationPair.fromSerializer(new StringRedisSerializer()))
-                .serializeValuesWith(SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
-    }
-
-    @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
+    public RedisTemplate<String, UsageDTO> redisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, UsageDTO> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
 
         // Key serializers
@@ -64,15 +50,12 @@ public class CacheConfig {
         RetryTemplate template = new RetryTemplate();
 
         // BackOff 정책 설정
-        BackOffPolicy backOffPolicy = new FixedBackOffPolicy();
-        ((FixedBackOffPolicy) backOffPolicy).setBackOffPeriod(retryBackoff);
+        FixedBackOffPolicy backOffPolicy = new FixedBackOffPolicy();
+        backOffPolicy.setBackOffPeriod(retryBackoff);
         template.setBackOffPolicy(backOffPolicy);
 
         // Retry 정책 설정
-        RetryPolicy retryPolicy = new SimpleRetryPolicy(
-                maxRetryAttempts,
-                Collections.singletonMap(Exception.class, true)
-        );
+        RetryPolicy retryPolicy = new SimpleRetryPolicy(maxRetryAttempts);
         template.setRetryPolicy(retryPolicy);
 
         return template;

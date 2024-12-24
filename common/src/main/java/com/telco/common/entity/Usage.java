@@ -19,15 +19,35 @@ public class Usage {
     private String userId;
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "totalUsage", column = @Column(name = "voice_total_usage")),
+            @AttributeOverride(name = "freeUsage", column = @Column(name = "voice_free_usage")),
+            @AttributeOverride(name = "excessUsage", column = @Column(name = "voice_excess_usage"))
+    })
     private VoiceUsage voiceUsage;
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "totalUsage", column = @Column(name = "video_total_usage")),
+            @AttributeOverride(name = "freeUsage", column = @Column(name = "video_free_usage")),
+            @AttributeOverride(name = "excessUsage", column = @Column(name = "video_excess_usage"))
+    })
     private VideoUsage videoUsage;
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "totalUsage", column = @Column(name = "message_total_usage")),
+            @AttributeOverride(name = "freeUsage", column = @Column(name = "message_free_usage")),
+            @AttributeOverride(name = "excessUsage", column = @Column(name = "message_excess_usage"))
+    })
     private MessageUsage messageUsage;
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "totalUsage", column = @Column(name = "data_total_usage")),
+            @AttributeOverride(name = "freeUsage", column = @Column(name = "data_free_usage")),
+            @AttributeOverride(name = "excessUsage", column = @Column(name = "data_excess_usage"))
+    })
     private DataUsage dataUsage;
 
     @Builder
