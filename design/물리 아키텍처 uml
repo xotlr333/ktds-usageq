@@ -1,0 +1,120 @@
+!theme mono
+
+title 사용량 조회/관리 시스템 - 물리 아키텍처 (Azure Cloud)
+
+' Azure Resource Group
+rectangle "Resource Group: usage-mgmt-rg" {
+    ' Virtual Network
+    rectangle "Virtual Network (usage-vnet)" {
+        rectangle "AKS Cluster" {
+            rectangle "System Node Pool" {
+                [Application Gateway] as app_gateway
+                note right of app_gateway
+                    - SSL 종료
+                    - 라우팅
+                    - WAF 기능
+                end note
+            }
+
+            rectangle "User Node Pool" {
+                rectangle "Usage Query Pod" as query_pod {
+                    [Usage Query API] as query_api
+                    [Spring Boot App] as query_app
+                }
+
+                rectangle "Usage Management Pod" as manage_pod {
+                    [Usage Management API] as manage_api
+                    [Spring Boot App] as manage_app
+                }
+
+                rectangle "Redis StatefulSet" as redis_stateful {
+                    rectangle "Redis Master Pod" as redis_master {
+                        [Redis Master] as redis_master_instance
+                    }
+                    rectangle "Redis Replica Pods" as redis_replica {
+                        [Redis Replica 1] as redis_replica1
+                        [Redis Replica 2] as redis_replica2
+                    }
+                    note right of redis_stateful
+                        - Persistent Volume 사용
+                        - Master-Replica 구성
+                        - 자동 장애 복구
+                    end note
+                }
+
+                rectangle "PostgreSQL StatefulSet" as postgres_stateful {
+                    rectangle "PostgreSQL Primary Pod" as postgres_primary {
+                        [PostgreSQL Primary] as postgres_primary_instance
+                    }
+                    rectangle "PostgreSQL Replica Pods" as postgres_replica {
+                        [PostgreSQL Replica 1] as postgres_replica1
+                        [PostgreSQL Replica 2] as postgres_replica2
+                    }
+                    note right of postgres_stateful
+                        - Persistent Volume 사용
+                        - Primary-Replica 구성
+                        - 자동 장애 복구
+                    end note
+                }
+
+                rectangle "RabbitMQ StatefulSet" as rabbitmq_stateful {
+                    rectangle "RabbitMQ Node Pods" as rabbitmq_nodes {
+                        [RabbitMQ Node 1] as rabbitmq_node1
+                        [RabbitMQ Node 2] as rabbitmq_node2
+                        [RabbitMQ Node 3] as rabbitmq_node3
+                    }
+                    note right of rabbitmq_stateful
+                        - Persistent Volume 사용
+                        - 클러스터 구성
+                        - Queue Mirroring
+                    end note
+                }
+            }
+        }
+
+        ' Subnets
+        rectangle "Subnets" {
+            rectangle "AKS Subnet\n(usage-aks-snet)" as aks_subnet
+            rectangle "Private Subnet\n(usage-pri-snet)" as pri_subnet
+        }
+    }
+
+    ' Private DNS
+    component "Private DNS Zone" as dns
+}
+
+' External Actors
+actor "사용자" as user
+actor "운영자" as admin
+
+' 사용량 조회 Flow
+user --> app_gateway : "1. 사용량 조회 요청"
+app_gateway --> query_pod : "2. 조회 요청 라우팅"
+query_api --> redis_replica : "3. Cache 조회"
+query_api --> postgres_replica : "4. Cache Miss 시\nDB 조회"
+query_api --> redis_master : "5. DB 조회 데이터\nCache 적재"
+redis_master --> redis_replica : "6. 데이터 복제"
+
+' 사용량 관리 Flow
+admin --> app_gateway : "7. 사용량 관리 요청"
+app_gateway --> manage_pod : "8. 관리 요청 라우팅"
+manage_api --> rabbitmq_node1 : "9. Queue 메시지 전송"
+rabbitmq_node1 --> postgres_primary : "10. DB 업데이트"
+rabbitmq_node1 --> redis_master : "11. Cache 업데이트"
+rabbitmq_node1 --> rabbitmq_node2 : "12. 실패 건 처리"
+
+legend right
+|= 구성요소 |= 설명 |
+| AKS | 컨테이너 오케스트레이션 |
+| Application Gateway | L7 로드밸런서, WAF |
+| RabbitMQ | 클러스터형 메시지 큐 |
+| Redis StatefulSet | 인메모리 캐시 |
+| PostgreSQL | 데이터베이스 |
+endlegend
+
+note right of rabbitmq_stateful
+  메시지 큐 구성:
+  - 3-node 클러스터
+  - Queue Mirroring
+  - High Availability
+end note

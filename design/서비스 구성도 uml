@@ -1,0 +1,53 @@
+@startuml
+!theme mono
+
+title Queue-Based Load Leveling + Cache-Aside 패턴 조합을 통한\n사용량 조회 성능 및 서비스 유연성 개선
+
+' Style configurations
+skinparam database {
+    BorderColor #90EE90
+    BackgroundColor #90EE90
+}
+
+skinparam queue {
+    BorderColor #FFD700
+    BackgroundColor #FFD700
+}
+
+skinparam rectangle {
+    BorderColor #87CEEB
+    BackgroundColor #87CEEB
+}
+
+' Components
+database "Usage\n<i><color:gray>[Direct access\nstorage]</color></i>" as usageLeft #lightgreen
+database "Usage" as usageRight #lightgreen
+queue "Queue" as queue
+rectangle "Cache" as cache #skyblue
+rectangle "재처리용Q" as reprocessQueue #gray
+rectangle "사용량 조회" as usageQuery #gold
+
+' Relationships
+usageLeft -right-> queue : "Update / Insert"
+queue -right-> usageRight : "Update"
+usageRight -down-> usageQuery : "서비스 호출(2)\n<cache에 없을 경우 DB조회>"
+cache -right-> usageQuery : "서비스 호출(1:cache 먼저조회)"
+
+queue -down-> reprocessQueue : "UPDATE 실패 시\n재처리Q"
+reprocessQueue -right-> cache : "재처리 update"
+
+' Notes
+legend right
+|= Type |= Description |
+| V | 통신 |
+| P | 영상 |
+| S | 문자 |
+| D | 데이터 |
+|= Usage Type |= Description |
+| 통신 | 조 |
+| 영상 | 조 |
+| 문자 | 건 |
+| 데이터 | 패킷 |
+end legend
+
+@enduml

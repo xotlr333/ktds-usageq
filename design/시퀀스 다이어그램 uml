@@ -1,0 +1,78 @@
+@startuml
+!theme mono
+
+title 사용량 조회/관리 서비스 - 시퀀스 다이어그램
+
+' Actors & Systems
+actor "사용자" as user
+actor "시스템 운영자" as admin
+participant "사용량 조회\n서비스" as query_service
+participant "사용량 관리\n서비스" as manage_service
+database "DB" as db
+queue "실시간 Queue" as queue
+queue "Dead Queue" as dead_queue
+database "Cache" as cache
+
+' 사용자 시나리오 - USG-0010
+group 사용자 사용량 조회
+    user -> query_service: 사용량 조회 요청
+    query_service -> cache: Cache 조회
+    alt Cache Hit
+        cache --> query_service: 사용량 데이터 반환
+        query_service --> user: 사용량 정보 표시\n(음성/영상/문자/데이터)
+    else Cache Miss
+        query_service -> db: DB 조회
+        db --> query_service: 사용량 데이터
+        query_service -> cache: Cache 업데이트
+        query_service --> user: 사용량 정보 표시
+    end
+end
+
+' 관리자 시나리오 - USG-0020
+group 실시간 사용량 업데이트
+    admin -> manage_service: 실시간 사용량 관리
+    manage_service -> queue: 사용량 데이터 적재
+
+    alt DB 업데이트 성공
+        queue -> db: DB 업데이트
+        db --> queue: 업데이트 완료
+        queue -> cache: Cache 업데이트
+        alt Cache 업데이트 성공
+            cache --> queue: 업데이트 완료
+            queue -> queue: 처리된 데이터 삭제
+        else Cache 업데이트 실패
+            queue -> dead_queue: 실패 데이터 이동
+        end
+    else DB 업데이트 실패
+        queue -> queue: 처리된 데이터 삭제
+    end
+end
+
+' 관리자 시나리오 - USG-0021
+group Dead Queue 처리
+    loop 최대 2회 재시도
+        dead_queue -> cache: Cache 업데이트 재시도
+        alt 성공
+            cache --> dead_queue: Cache 업데이트 성공
+            dead_queue -> dead_queue: 데이터 삭제
+        else 실패 (2회)
+            dead_queue -> dead_queue: 최종 실패 처리\n및 데이터 삭제
+        end
+    end
+end
+
+note right of query_service
+  조회 서비스 처리 단위:
+  - 음성/영상: 초단위
+  - 데이터: 패킷단위
+  - 문자: 건수단위
+  - 초과과금: 원단위(소수점 반올림)
+end note
+
+note right of manage_service
+  관리 서비스 주요 기능:
+  - 실시간 사용량 업데이트(DB/Cache)
+  - Cache 실패 시 Dead Queue 재처리
+end note
+
+@enduml

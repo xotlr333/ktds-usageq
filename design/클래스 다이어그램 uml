@@ -1,0 +1,199 @@
+@startuml
+!theme mono
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam classAttributeFontSize 11
+
+title 사용량 조회/관리 시스템 - 클래스 다이어그램
+
+' Presentation Layer
+package "Presentation Layer" {
+    class UsageController {
+        -usageQueryService: IUsageQueryService
+        +getUserUsage(userId: String): ResponseEntity<UsageDTO>
+    }
+
+    class UsageManagementController {
+        -usageManagementService: IUsageManagementService
+        +updateUsage(usageData: UsageData): ResponseEntity<void>
+        +monitorSystemStatus(): ResponseEntity<SystemStatusDTO>
+        +updateSystemPolicy(policy: SystemPolicyDTO): ResponseEntity<void>
+    }
+}
+
+' Application Layer
+package "Application Layer" {
+    interface IUsageQueryService {
+        +getUserUsage(userId: String): UsageDTO
+    }
+
+    class UsageQueryServiceImpl {
+        -cacheService: ICacheService
+        -dbService: IUsageDBService
+        +getUserUsage(userId: String): UsageDTO
+    }
+
+    interface IUsageManagementService {
+        +updateUsage(usageData: UsageData): void
+        +processDeadLetterQueue(): void
+        +getSystemStatus(): SystemStatusDTO
+        +updateSystemPolicy(policy: SystemPolicyDTO): void
+    }
+
+    class UsageManagementServiceImpl {
+        -queueService: IQueueService
+        -cacheService: ICacheService
+        -dbService: IUsageDBService
+        +updateUsage(usageData: UsageData): void
+        +processDeadLetterQueue(): void
+        +getSystemStatus(): SystemStatusDTO
+        +updateSystemPolicy(policy: SystemPolicyDTO): void
+    }
+}
+
+' Domain Layer
+package "Domain Layer" {
+    class UsageDTO {
+        -userId: String
+        -voiceUsage: UsageDetail
+        -videoUsage: UsageDetail
+        -messageUsage: UsageDetail
+        -dataUsage: UsageDetail
+        +getUserId(): String
+        +getVoiceUsage(): UsageDetail
+        +getVideoUsage(): UsageDetail
+        +getMessageUsage(): UsageDetail
+        +getDataUsage(): UsageDetail
+    }
+
+    class UsageDetail {
+        -totalUsage: long
+        -freeUsage: long
+        -excessUsage: long
+        -unit: String
+        +getTotalUsage(): long
+        +getFreeUsage(): long
+        +getExcessUsage(): long
+        +getUnit(): String
+    }
+
+    class UsageData {
+        -userId: String
+        -type: String
+        -amount: long
+        -timestamp: DateTime
+    }
+
+    class SystemStatusDTO {
+        -cacheStatus: CacheStatus
+        -queueStatus: QueueStatus
+        -dbStatus: DBStatus
+    }
+
+    class SystemPolicyDTO {
+        -cachePolicy: CachePolicy
+        -queuePolicy: QueuePolicy
+        -systemPolicy: SystemPolicy
+    }
+}
+
+' Infrastructure Layer
+package "Infrastructure Layer" {
+    interface ICacheService {
+        +get(key: String): Optional<T>
+        +set(key: String, value: T): void
+        +delete(key: String): void
+    }
+
+    class RedisCacheService {
+        -redisTemplate: RedisTemplate
+        +get(key: String): Optional<T>
+        +set(key: String, value: T): void
+        +delete(key: String): void
+    }
+
+    interface IQueueService {
+        +send(message: Message): void
+        +receive(): Message
+        +moveToDeadLetter(message: Message): void
+    }
+
+    class RabbitMQService {
+        -rabbitTemplate: RabbitTemplate
+        -deadLetterQueue: Queue
+        +send(message: Message): void
+        +receive(): Message
+        +moveToDeadLetter(message: Message): void
+        -retryDeadLetter(message: Message): void
+    }
+
+    interface IUsageDBService {
+        +saveUsage(usage: UsageData): void
+        +getUsage(userId: String): UsageDTO
+    }
+
+    class PostgresUsageService {
+        -usageRepository: UsageRepository
+        +saveUsage(usage: UsageData): void
+        +getUsage(userId: String): UsageDTO
+    }
+}
+
+' Configuration
+package "Configuration" {
+    class SwaggerConfig {
+        +apiInfo(): ApiInfo
+        +usageApi(): Docket
+    }
+
+    class SecurityConfig {
+        +configure(http: HttpSecurity): void
+        +passwordEncoder(): PasswordEncoder
+    }
+
+    class CacheConfig {
+        +redisConnectionFactory(): RedisConnectionFactory
+        +redisTemplate(): RedisTemplate
+    }
+
+    class QueueConfig {
+        +rabbitTemplate(): RabbitTemplate
+        +deadLetterQueue(): Queue
+    }
+}
+
+' Relationships
+UsageController --> IUsageQueryService
+UsageManagementController --> IUsageManagementService
+
+UsageQueryServiceImpl ..|> IUsageQueryService
+UsageManagementServiceImpl ..|> IUsageManagementService
+
+UsageQueryServiceImpl --> ICacheService
+UsageQueryServiceImpl --> IUsageDBService
+
+UsageManagementServiceImpl --> IQueueService
+UsageManagementServiceImpl --> ICacheService
+UsageManagementServiceImpl --> IUsageDBService
+
+RedisCacheService ..|> ICacheService
+RabbitMQService ..|> IQueueService
+PostgresUsageService ..|> IUsageDBService
+
+UsageDTO o-- UsageDetail
+
+note right of UsageDetail
+  단위:
+  - 음성/영상: 초
+  - 데이터: 패킷
+  - 문자: 건
+end note
+
+note right of RabbitMQService
+  Dead Letter Queue 처리:
+  - 최대 2회 재시도
+  - 실패 시 최종 삭제
+end note
+
+@enduml

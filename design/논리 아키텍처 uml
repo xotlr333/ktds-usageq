@@ -1,0 +1,89 @@
+!theme mono
+
+title 사용량 조회/관리 시스템 - 논리 아키텍처
+
+package "클라이언트 계층" {
+    [사용자 앱] as userApp
+    [KOS-Rater] as adminApp
+}
+
+package "게이트웨이 계층" {
+    [API Gateway] as gateway
+    note right of gateway
+        - SSL 종료
+        - 라우팅
+        - 인증/인가
+    end note
+}
+
+package "서비스 계층" {
+    [사용량 조회 서비스] as queryService
+    [사용량 관리 서비스] as manageService
+
+    note right of queryService
+        - 실시간 사용량 조회
+        - Cache-Aside 패턴 적용
+        - 음성/영상/문자/데이터 조회
+    end note
+
+    note right of manageService
+        - 실시간 사용량 업데이트
+        - Dead Letter Queue 처리
+        - 모니터링 및 정책 관리
+    end note
+}
+
+package "데이터 접근 계층" {
+    [캐시 서비스] as cacheService
+    [큐 서비스] as queueService
+    [데이터베이스 서비스] as dbService
+
+    note right of cacheService
+        캐시 데이터 관리:
+        - 조회/갱신/삭제
+        - TTL 관리
+    end note
+
+    note right of queueService
+        Queue 처리:
+        - 실시간 Queue
+        - Dead Letter Queue
+        - 재처리 로직
+    end note
+}
+
+package "데이터 저장 계층" {
+    database "사용량 DB" as usageDb
+    queue "실시간 Queue" as realQueue
+    queue "Dead Queue" as deadQueue
+    database "Cache" as cache
+}
+
+' 처리 흐름
+userApp --> gateway : 1. 사용량 조회 요청
+adminApp --> gateway : 2. 관리 요청
+
+gateway --> queryService : 3. 조회 요청 라우팅
+gateway --> manageService : 4. 관리 요청 라우팅
+
+queryService --> cacheService : 5. 캐시 조회
+cacheService --> cache : 6. 캐시 접근
+
+queryService --> dbService : 7. Cache Miss 시\nDB 조회
+dbService --> usageDb : 8. DB 접근
+
+manageService --> queueService : 9. 실시간\n데이터 처리
+queueService --> realQueue : 10. Queue 적재
+
+queueService --> dbService : 11. DB 업데이트
+dbService --> usageDb : 12. DB 접근
+
+queueService --> deadQueue : 13. 실패 건\n재처리 Queue
+queueService --> cacheService : 14. 캐시 갱신
+cacheService --> cache : 15. 캐시 업데이트
+
+note right of deadQueue
+    Dead Letter Queue 처리:
+    1. 최대 2회 재시도
+    2. 실패 시 최종 삭제
+end note
