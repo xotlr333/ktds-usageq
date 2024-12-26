@@ -1,0 +1,10 @@
+.gradle
+**/build/
+common/build
+!src/**/build/
+.idea
+*.iml
+*.iws
+*.ipr
+out/
+.lock
