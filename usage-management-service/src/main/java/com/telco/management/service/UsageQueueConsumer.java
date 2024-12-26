@@ -35,10 +35,10 @@ public class UsageQueueConsumer {
 
             updateCache(usage);
 
-            log.info("Successfully processed usage update for userId: {}", request.getUserId());
+            log.info("Successfully processed usage update cache for userId: {}", request.getUserId());
 
         } catch (Exception e) {
-            log.error("Failed to process usage update for userId: {}, error: {}",
+            log.error("Failed to process usage update cache for userId: {}, error: {}",
                     request.getUserId(), e.getMessage());
             throw e;
         }
