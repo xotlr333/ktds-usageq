@@ -1,8 +1,10 @@
 spring:
-  redis:
-    host: ${REDIS_HOST:localhost}
-    port: ${REDIS_PORT:6379}
-    ttl: ${REDIS_TTL:600}
+  data:
+    redis:
+      host: ${REDIS_HOST:20.249.198.38}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:P@ssw0rd}
+      ttl: ${REDIS_TTL:600}
   datasource:
     url: ${DB_URL:jdbc:postgresql://20.249.197.182:5432/telecomdb}
     username: ${DB_USERNAME:telecomuser}
