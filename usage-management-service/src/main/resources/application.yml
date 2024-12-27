@@ -46,3 +46,5 @@ management:
   endpoint:
     health:
       show-details: always
+      probes:
+        enabled: true  # K8s liveness/readiness probe 지원
