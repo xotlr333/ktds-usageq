@@ -253,6 +253,8 @@ jobs:
                         key: db-password
                   - name: SPRING_RABBITMQ_HOST
                     value: ${{ secrets.RABBITMQ_HOST }}
+                  - name: RABBITMQ_PORT
+                    value: "5672"
                   - name: SPRING_RABBITMQ_USERNAME
                     value: ${{ secrets.RABBITMQ_USERNAME }}
                   - name: SPRING_RABBITMQ_PASSWORD
