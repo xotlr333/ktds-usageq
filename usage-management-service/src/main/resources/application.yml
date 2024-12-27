@@ -38,15 +38,15 @@ spring:
 # Common Module Source Files
 
 # health check
-management:
-  endpoints:
-    web:
-      base-path: /actuator  # 기본 경로 명시
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      enabled: true
-      show-details: always
-      probes:
-        enabled: true    # Kubernetes liveness/readiness probe 활성화
+#management:
+#  endpoints:
+#    web:
+#      base-path: /actuator  # 기본 경로 명시
+#      exposure:
+#        include: health,info
+#  endpoint:
+#    health:
+#      enabled: true
+#      show-details: always
+#      probes:
+#        enabled: true    # Kubernetes liveness/readiness probe 활성화
