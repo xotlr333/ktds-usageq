@@ -36,3 +36,13 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
 # Common Module Source Files
+
+# health check
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
