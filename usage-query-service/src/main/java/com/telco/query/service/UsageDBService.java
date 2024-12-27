@@ -25,7 +25,7 @@ public class UsageDBService {
     
     @Transactional
     public void updateUsage(String userId, String type, long amount) {
-        Usage usage = usageRepository.findByUserIdWithLock(userId)
+        Usage usage = usageRepository.findByUserIdWithUsages(userId)
                 .orElseThrow(() -> new BizException("사용자 사용량 정보를 찾을 수 없습니다.", 404));
         
         usage.updateUsage(type, amount);
