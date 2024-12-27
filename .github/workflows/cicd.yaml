@@ -181,20 +181,28 @@ jobs:
                     limits:
                       memory: "2Gi"
                       cpu: "1000m"
+                  startupProbe:  # 시작 시 probe 추가
+                    httpGet:
+                      path: /actuator/health
+                      port: 8080
+                    failureThreshold: 30
+                    periodSeconds: 10
                   livenessProbe:
                     httpGet:
                       path: /actuator/health
                       port: 8080
-                    initialDelaySeconds: 120  # 늘려서 애플리케이션이 완전히 시작할 시간을 줌
-                    periodSeconds: 20
+                    initialDelaySeconds: 180  # 더 길게 설정
+                    periodSeconds: 30
                     timeoutSeconds: 5
+                    failureThreshold: 3
                   readinessProbe:
                     httpGet:
                       path: /actuator/health
                       port: 8080
-                    initialDelaySeconds: 90
-                    periodSeconds: 20
+                    initialDelaySeconds: 150  # 더 길게 설정
+                    periodSeconds: 30
                     timeoutSeconds: 5
+                    failureThreshold: 3
           ---
           apiVersion: v1
           kind: Service
@@ -269,20 +277,28 @@ jobs:
                     limits:
                       memory: "2Gi"
                       cpu: "1000m"
+                  startupProbe:  # 시작 시 probe 추가
+                    httpGet:
+                      path: /actuator/health
+                      port: 8080
+                    failureThreshold: 30
+                    periodSeconds: 10
                   livenessProbe:
                     httpGet:
                       path: /actuator/health
                       port: 8080
-                    initialDelaySeconds: 120  # 늘려서 애플리케이션이 완전히 시작할 시간을 줌
-                    periodSeconds: 20
+                    initialDelaySeconds: 180  # 더 길게 설정
+                    periodSeconds: 30
                     timeoutSeconds: 5
+                    failureThreshold: 3
                   readinessProbe:
                     httpGet:
                       path: /actuator/health
                       port: 8080
-                    initialDelaySeconds: 90
-                    periodSeconds: 20
+                    initialDelaySeconds: 150  # 더 길게 설정
+                    periodSeconds: 30
                     timeoutSeconds: 5
+                    failureThreshold: 3
           ---
           apiVersion: v1
           kind: Service
