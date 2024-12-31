@@ -21,6 +21,10 @@ dependencies {
     // Jackson
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // Logging
+    implementation 'org.slf4j:slf4j-api:2.0.16'  // slf4j 의존성 추가
+    implementation 'ch.qos.logback:logback-classic:1.4.14'  // logback 구현체 추가
 }
 
 bootJar {
