@@ -88,19 +88,21 @@ jobs:
 
       - name: Build and push query service image
         run: |
-          docker build -t ${{ env.REGISTRY }}/usage-query-service:${{ github.sha }} \
-            -f usage-query-service/Dockerfile .
-          docker tag ${{ env.REGISTRY }}/usage-query-service:${{ github.sha }} ${{ env.REGISTRY }}/usage-query-service:latest
-          docker push ${{ env.REGISTRY }}/usage-query-service:${{ github.sha }}
-          docker push ${{ env.REGISTRY }}/usage-query-service:latest
+          docker build -t ${{ env.REGISTRY }}/telecom/usage-query:${{ github.sha }} \
+            -f deployment/Dockerfile-usage-query .
+          docker tag ${{ env.REGISTRY }}/telecom/usage-query:${{ github.sha }} \
+            ${{ env.REGISTRY }}/telecom/usage-query:latest
+          docker push ${{ env.REGISTRY }}/telecom/usage-query:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/telecom/usage-query:latest
 
       - name: Build and push management service image
         run: |
-          docker build -t ${{ env.REGISTRY }}/usage-management-service:${{ github.sha }} \
-            -f usage-management-service/Dockerfile .
-          docker tag ${{ env.REGISTRY }}/usage-management-service:${{ github.sha }} ${{ env.REGISTRY }}/usage-management-service:latest
-          docker push ${{ env.REGISTRY }}/usage-management-service:${{ github.sha }}
-          docker push ${{ env.REGISTRY }}/usage-management-service:latest
+          docker build -t ${{ env.REGISTRY }}/telecom/usage-management:${{ github.sha }} \
+            -f deployment/Dockerfile-usage-management .
+          docker tag ${{ env.REGISTRY }}/telecom/usage-management:${{ github.sha }} \
+            ${{ env.REGISTRY }}/telecom/usage-management:latest
+          docker push ${{ env.REGISTRY }}/telecom/usage-management:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/telecom/usage-management:latest
 
   deploy:
     needs: docker-build
@@ -125,150 +127,35 @@ jobs:
         run: |
           kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Create Secrets
+      - name: Create ConfigMap and Secrets
         run: |
-          kubectl create secret generic db-credentials \
+          # Create ConfigMap
+          kubectl create configmap app-config \
             --namespace ${{ env.NAMESPACE }} \
-            --from-literal=db-password=${{ secrets.DB_PASSWORD }} \
-            --from-literal=rabbitmq-password=${{ secrets.RABBITMQ_PASSWORD }} \
+            --from-literal=SPRING_PROFILES_ACTIVE=${{ github.event.inputs.environment || 'dev' }} \
+            --from-literal=SERVER_PORT=8080 \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Deploy Usage Query Service
-        run: |
-          kubectl apply -f - <<EOF
-          apiVersion: apps/v1
-          kind: Deployment
-          metadata:
-            name: usage-query
-            namespace: ${{ env.NAMESPACE }}
-          spec:
-            selector:
-              matchLabels:
-                app: usage-query
-            replicas: 2
-            strategy:
-              type: RollingUpdate
-              rollingUpdate:
-                maxSurge: 1
-                maxUnavailable: 0
-            template:
-              metadata:
-                labels:
-                  app: usage-query
-              spec:
-                containers:
-                - name: usage-query
-                  image: ${{ env.REGISTRY }}/usage-query-service:${{ github.sha }}
-                  imagePullPolicy: Always
-                  ports:
-                  - containerPort: 8080
-                  env:
-                  - name: SPRING_PROFILES_ACTIVE
-                    value: ${{ github.event.inputs.environment || 'dev' }}
-                  - name: SPRING_DATASOURCE_URL
-                    value: ${{ secrets.DB_URL }}
-                  - name: SPRING_DATASOURCE_USERNAME
-                    value: ${{ secrets.DB_USERNAME }}
-                  - name: SPRING_DATASOURCE_PASSWORD
-                    valueFrom:
-                      secretKeyRef:
-                        name: db-credentials
-                        key: db-password
-                  resources:
-                    requests:
-                      memory: "1Gi"
-                      cpu: "500m"
-                    limits:
-                      memory: "2Gi"
-                      cpu: "1000m"
-          ---
-          apiVersion: v1
-          kind: Service
-          metadata:
-            name: usage-query
-            namespace: ${{ env.NAMESPACE }}
-          spec:
-            selector:
-              app: usage-query
-            ports:
-            - port: 80
-              targetPort: 8080
-            type: LoadBalancer
-          EOF
+          # Create Secrets
+          kubectl create secret generic app-secret \
+            --namespace ${{ env.NAMESPACE }} \
+            --from-literal=DB_URL=${{ secrets.DB_URL }} \
+            --from-literal=DB_USERNAME=${{ secrets.DB_USERNAME }} \
+            --from-literal=DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            --from-literal=REDIS_HOST=${{ secrets.REDIS_HOST }} \
+            --from-literal=REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
+            --from-literal=RABBITMQ_HOST=${{ secrets.RABBITMQ_HOST }} \
+            --from-literal=RABBITMQ_USERNAME=${{ secrets.RABBITMQ_USERNAME }} \
+            --from-literal=RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }} \
+            --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Deploy Usage Management Service
+      - name: Deploy applications
         run: |
-          kubectl apply -f - <<EOF
-          apiVersion: apps/v1
-          kind: Deployment
-          metadata:
-            name: usage-management
-            namespace: ${{ env.NAMESPACE }}
-          spec:
-            selector:
-              matchLabels:
-                app: usage-management
-            replicas: 2
-            strategy:
-              type: RollingUpdate
-              rollingUpdate:
-                maxSurge: 1
-                maxUnavailable: 0
-            template:
-              metadata:
-                labels:
-                  app: usage-management
-              spec:
-                containers:
-                - name: usage-management
-                  image: ${{ env.REGISTRY }}/usage-management-service:${{ github.sha }}
-                  imagePullPolicy: Always
-                  ports:
-                  - containerPort: 8080
-                  env:
-                  - name: SPRING_PROFILES_ACTIVE
-                    value: ${{ github.event.inputs.environment || 'dev' }}
-                  - name: SPRING_DATASOURCE_URL
-                    value: ${{ secrets.DB_URL }}
-                  - name: SPRING_DATASOURCE_USERNAME
-                    value: ${{ secrets.DB_USERNAME }}
-                  - name: SPRING_DATASOURCE_PASSWORD
-                    valueFrom:
-                      secretKeyRef:
-                        name: db-credentials
-                        key: db-password
-                  - name: SPRING_RABBITMQ_HOST
-                    value: ${{ secrets.RABBITMQ_HOST }}
-                  - name: RABBITMQ_PORT
-                    value: "5672"
-                  - name: SPRING_RABBITMQ_USERNAME
-                    value: ${{ secrets.RABBITMQ_USERNAME }}
-                  - name: SPRING_RABBITMQ_PASSWORD
-                    valueFrom:
-                      secretKeyRef:
-                        name: db-credentials
-                        key: rabbitmq-password
-                  resources:
-                    requests:
-                      memory: "1Gi"
-                      cpu: "500m"
-                    limits:
-                      memory: "2Gi"
-                      cpu: "1000m"
-          ---
-          apiVersion: v1
-          kind: Service
-          metadata:
-            name: usage-management
-            namespace: ${{ env.NAMESPACE }}
-          spec:
-            selector:
-              app: usage-management
-            ports:
-            - port: 80
-              targetPort: 8080
-            type: LoadBalancer
-          EOF
+          # Update manifest with current image tags
+          cat deployment/manifest.yaml | \
+            sed "s|image: .*usage-query.*|image: ${{ env.REGISTRY }}/telecom/usage-query:${{ github.sha }}|g" | \
+            sed "s|image: .*usage-management.*|image: ${{ env.REGISTRY }}/telecom/usage-management:${{ github.sha }}|g" | \
+            kubectl apply -f -
 
       - name: Verify deployment
         run: |
