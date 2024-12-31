@@ -16,14 +16,14 @@ public class UsageManagementService {
 
     public void updateUsage(UsageUpdateRequest request) {
         try {
-            log.info("Sending usage update message to queue - userId: {}, type: {}, amount: {}",
+            log.info("Sending usage update message to <<<<queue>>>> - userId: {}, type: {}, amount: {}",
                     request.getUserId(), request.getType(), request.getAmount());
 
             rabbitTemplate.convertAndSend("usage.exchange", "usage.update", request);
 
-            log.info("Successfully sent usage update message to queue");
+            log.info("Successfully sent usage update message to <<<<queue>>>>");
         } catch (Exception e) {
-            log.error("Failed to send usage update message to queue - error: {}", e.getMessage());
+            log.error("Failed to send usage update message to <<<<queue>>>> - error: {}", e.getMessage());
             throw new RuntimeException("Failed to process usage update", e);
         }
     }

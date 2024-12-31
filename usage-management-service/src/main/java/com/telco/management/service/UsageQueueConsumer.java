@@ -35,10 +35,10 @@ public class UsageQueueConsumer {
 
             updateCache(usage);
 
-            log.info("Successfully processed usage update cache for userId: {}", request.getUserId());
+            log.info("Successfully processed usage update <<<<cache>>>> for userId: {}", request.getUserId());
 
         } catch (Exception e) {
-            log.error("Failed to process usage update cache for userId: {}, error: {}",
+            log.error("Failed to process usage update <<<<cache>>>> for userId: {}, error: {}",
                     request.getUserId(), e.getMessage());
             throw e;
         }
@@ -60,7 +60,7 @@ public class UsageQueueConsumer {
             String cacheKey = String.format("usage:%s", usage.getUserId());
             cacheService.set(cacheKey, usageDTO);
         } catch (Exception e) {
-            log.error("Failed to update cache for userId: {}, error: {}",
+            log.error("Failed to update <<<<cache>>>> for userId: {}, error: {}",
                     usage.getUserId(), e.getMessage());
         }
     }
