@@ -1,0 +1,73 @@
+# Usage Management Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: usage-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: usage-management
+  template:
+    metadata:
+      labels:
+        app: usage-management
+    spec:
+      containers:
+      - name: usage-management
+        image: usageqcr.azurecr.io/telecom/usage-management:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: usage-management
+spec:
+  selector:
+    app: usage-management
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: LoadBalancer
+---
+# Usage Query Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: usage-query
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: usage-query
+  template:
+    metadata:
+      labels:
+        app: usage-query
+    spec:
+      containers:
+      - name: usage-query
+        image: usageqcr.azurecr.io/telecom/usage-query:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: usage-query
+spec:
+  selector:
+    app: usage-query
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: LoadBalancer
