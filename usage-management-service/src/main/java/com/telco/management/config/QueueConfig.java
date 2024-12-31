@@ -75,7 +75,7 @@ public class QueueConfig {
         RetryTemplate template = new RetryTemplate();
 
         SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-        retryPolicy.setMaxAttempts(3);  // 3에서 1로 변경
+        retryPolicy.setMaxAttempts(0);  // 3에서 1로 변경
 
         ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
         backOffPolicy.setInitialInterval(1000);
