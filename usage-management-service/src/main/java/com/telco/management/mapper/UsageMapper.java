@@ -13,50 +13,18 @@ public class UsageMapper {
 
         return UsageDTO.builder()
                 .userId(usage.getUserId())
-                .voiceUsage(createUsageDetail(usage.getVoiceUsage(), "초"))
-                .videoUsage(createUsageDetail(usage.getVideoUsage(), "초"))
-                .messageUsage(createUsageDetail(usage.getMessageUsage(), "건"))
-                .dataUsage(createUsageDetail(usage.getDataUsage(), "패킷"))
-                .build();
-    }
-
-    private UsageDetail createUsageDetail(VoiceUsage usage, String unit) {
-        if (usage == null) return null;
-        return UsageDetail.builder()
-                .totalUsage(usage.getTotalUsage())
-                .freeUsage(usage.getFreeUsage())
-                .excessUsage(usage.getExcessUsage())
-                .unit(unit)
-                .build();
-    }
-
-    private UsageDetail createUsageDetail(VideoUsage usage, String unit) {
-        if (usage == null) return null;
-        return UsageDetail.builder()
-                .totalUsage(usage.getTotalUsage())
-                .freeUsage(usage.getFreeUsage())
-                .excessUsage(usage.getExcessUsage())
-                .unit(unit)
-                .build();
-    }
-
-    private UsageDetail createUsageDetail(MessageUsage usage, String unit) {
-        if (usage == null) return null;
-        return UsageDetail.builder()
-                .totalUsage(usage.getTotalUsage())
-                .freeUsage(usage.getFreeUsage())
-                .excessUsage(usage.getExcessUsage())
-                .unit(unit)
-                .build();
-    }
-
-    private UsageDetail createUsageDetail(DataUsage usage, String unit) {
-        if (usage == null) return null;
-        return UsageDetail.builder()
-                .totalUsage(usage.getTotalUsage())
-                .freeUsage(usage.getFreeUsage())
-                .excessUsage(usage.getExcessUsage())
-                .unit(unit)
+                .voiceUsage(new UsageDetail(usage.getVoiceTotalUsage(),
+                        usage.getVoiceFreeUsage(),
+                        usage.getVoiceExcessUsage(), "초"))
+                .videoUsage(new UsageDetail(usage.getVideoTotalUsage(),
+                        usage.getVideoFreeUsage(),
+                        usage.getVideoExcessUsage(), "초"))
+                .messageUsage(new UsageDetail(usage.getMessageTotalUsage(),
+                        usage.getMessageFreeUsage(),
+                        usage.getMessageExcessUsage(), "건"))
+                .dataUsage(new UsageDetail(usage.getDataTotalUsage(),
+                        usage.getDataFreeUsage(),
+                        usage.getDataExcessUsage(), "패킷"))
                 .build();
     }
 }

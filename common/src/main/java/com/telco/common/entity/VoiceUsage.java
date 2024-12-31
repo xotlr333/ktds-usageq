@@ -16,17 +16,13 @@ public class VoiceUsage {
 
     @Builder
     public VoiceUsage(long totalUsage, long freeUsage) {
-        this.totalUsage = totalUsage;
+        setTotalUsage(totalUsage);  // 생성자에서도 동일한 로직 사용
         this.freeUsage = freeUsage;
-        calculateExcessUsage();
     }
 
-    public void addUsage(long amount) {
-        this.totalUsage += amount;
-        calculateExcessUsage();
-    }
-
-    private void calculateExcessUsage() {
-        this.excessUsage = Math.max(0, totalUsage - freeUsage);
+    // 새로운 메서드 - 값 설정
+    public void setTotalUsage(long amount) {
+        this.totalUsage = amount;  // 단순 대체
+        this.excessUsage = Math.max(0, this.totalUsage - this.freeUsage);
     }
 }

@@ -5,10 +5,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 @Entity
 @Table(name = "usages")
 @Getter
+@Slf4j
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Usage {
     @Id
@@ -18,54 +21,71 @@ public class Usage {
     @Column(nullable = false, length = 50)
     private String userId;
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "totalUsage", column = @Column(name = "voice_total_usage")),
-            @AttributeOverride(name = "freeUsage", column = @Column(name = "voice_free_usage")),
-            @AttributeOverride(name = "excessUsage", column = @Column(name = "voice_excess_usage"))
-    })
-    private VoiceUsage voiceUsage;
+    // 직접 값을 관리하도록 변경
+    @Column(name = "voice_total_usage")
+    private long voiceTotalUsage;
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "totalUsage", column = @Column(name = "video_total_usage")),
-            @AttributeOverride(name = "freeUsage", column = @Column(name = "video_free_usage")),
-            @AttributeOverride(name = "excessUsage", column = @Column(name = "video_excess_usage"))
-    })
-    private VideoUsage videoUsage;
+    @Column(name = "voice_free_usage")
+    private long voiceFreeUsage;
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "totalUsage", column = @Column(name = "message_total_usage")),
-            @AttributeOverride(name = "freeUsage", column = @Column(name = "message_free_usage")),
-            @AttributeOverride(name = "excessUsage", column = @Column(name = "message_excess_usage"))
-    })
-    private MessageUsage messageUsage;
+    @Column(name = "voice_excess_usage")
+    private long voiceExcessUsage;
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "totalUsage", column = @Column(name = "data_total_usage")),
-            @AttributeOverride(name = "freeUsage", column = @Column(name = "data_free_usage")),
-            @AttributeOverride(name = "excessUsage", column = @Column(name = "data_excess_usage"))
-    })
-    private DataUsage dataUsage;
+    // 다른 사용량도 동일하게 변경
+    @Column(name = "video_total_usage")
+    private long videoTotalUsage;
+
+    @Column(name = "video_free_usage")
+    private long videoFreeUsage;
+
+    @Column(name = "video_excess_usage")
+    private long videoExcessUsage;
+
+    @Column(name = "message_total_usage")
+    private long messageTotalUsage;
+
+    @Column(name = "message_free_usage")
+    private long messageFreeUsage;
+
+    @Column(name = "message_excess_usage")
+    private long messageExcessUsage;
+
+    @Column(name = "data_total_usage")
+    private long dataTotalUsage;
+
+    @Column(name = "data_free_usage")
+    private long dataFreeUsage;
+
+    @Column(name = "data_excess_usage")
+    private long dataExcessUsage;
 
     @Builder
-    public Usage(String userId, VoiceUsage voiceUsage, VideoUsage videoUsage,
-                 MessageUsage messageUsage, DataUsage dataUsage) {
+    public Usage(String userId) {
         this.userId = userId;
-        this.voiceUsage = voiceUsage;
-        this.videoUsage = videoUsage;
-        this.messageUsage = messageUsage;
-        this.dataUsage = dataUsage;
+        this.voiceFreeUsage = 18000L;
+        this.videoFreeUsage = 7200L;
+        this.messageFreeUsage = 300L;
+        this.dataFreeUsage = 5368709120L;
     }
 
     public void updateUsage(String type, long amount) {
         switch (type) {
-            case "VOICE" -> voiceUsage.addUsage(amount);
-            case "VIDEO" -> videoUsage.addUsage(amount);
-            case "MESSAGE" -> messageUsage.addUsage(amount);
-            case "DATA" -> dataUsage.addUsage(amount);
+            case "VOICE" -> {
+                this.voiceTotalUsage = amount;
+                this.voiceExcessUsage = Math.max(0, amount - voiceFreeUsage);
+            }
+            case "VIDEO" -> {
+                this.videoTotalUsage = amount;
+                this.videoExcessUsage = Math.max(0, amount - videoFreeUsage);
+            }
+            case "MESSAGE" -> {
+                this.messageTotalUsage = amount;
+                this.messageExcessUsage = Math.max(0, amount - messageFreeUsage);
+            }
+            case "DATA" -> {
+                this.dataTotalUsage = amount;
+                this.dataExcessUsage = Math.max(0, amount - dataFreeUsage);
+            }
             default -> throw new IllegalArgumentException("Invalid usage type: " + type);
         }
     }

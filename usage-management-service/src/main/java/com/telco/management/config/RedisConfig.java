@@ -22,9 +22,10 @@ public class RedisConfig {
         template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
 
-        template.setEnableTransactionSupport(true);
-        template.afterPropertiesSet();
+        // Redis 트랜잭션 비활성화
+        template.setEnableTransactionSupport(false);
 
+        template.afterPropertiesSet();
         return template;
     }
 }

@@ -15,53 +15,57 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UsageQueueConsumer {
 
     private final UsageRepository usageRepository;
     private final ICacheService<UsageDTO> cacheService;
     private final UsageMapper usageMapper;
 
-    @RabbitListener(queues = "usage.queue")
     @Transactional
+    @RabbitListener(queues = "usage.queue")
     public void processUsageUpdate(UsageUpdateRequest request) {
-        log.info("Received usage update request for userId: {}", request.getUserId());
+        String userId = request.getUserId();
+        log.info("Processing usage update - userId: {}, type: {}, amount: {}",
+                userId, request.getType(), request.getAmount());
 
         try {
-            Usage usage = usageRepository.findByUserIdWithLock(request.getUserId())
-                    .orElseGet(() -> createNewUsage(request.getUserId()));
+            // DB 업데이트
+            Usage usage = usageRepository.findByUserIdWithLock(userId)
+                    .orElseGet(() -> Usage.builder()
+                            .userId(userId)
+                            .build());
 
             usage.updateUsage(request.getType(), request.getAmount());
-            usageRepository.save(usage);
+            Usage savedUsage = usageRepository.saveAndFlush(usage);
 
-            updateCache(usage);
-
-            log.info("Successfully processed usage update <<<<cache>>>> for userId: {}", request.getUserId());
+            // 캐시 업데이트 (트랜잭션 커밋 후)
+            try {
+                updateCache(savedUsage);
+            } catch (Exception e) {
+                log.error("Cache update failed - userId: {}", userId, e);
+            }
 
         } catch (Exception e) {
-            log.error("Failed to process usage update <<<<cache>>>> for userId: {}, error: {}",
-                    request.getUserId(), e.getMessage());
+            log.error("Failed to process usage update - userId: {}", userId, e);
             throw e;
         }
     }
 
-    private Usage createNewUsage(String userId) {
-        return Usage.builder()
-                .userId(userId)
-                .voiceUsage(VoiceUsage.builder().totalUsage(0L).freeUsage(18000L).build())
-                .videoUsage(VideoUsage.builder().totalUsage(0L).freeUsage(7200L).build())
-                .messageUsage(MessageUsage.builder().totalUsage(0L).freeUsage(300L).build())
-                .dataUsage(DataUsage.builder().totalUsage(0L).freeUsage(5368709120L).build())
-                .build();
+    @Transactional
+    protected Usage updateUsageInTransaction(UsageUpdateRequest request) {
+        Usage usage = usageRepository.findByUserIdWithLock(request.getUserId())
+                .orElseGet(() -> Usage.builder()
+                        .userId(request.getUserId())
+                        .build());
+
+        usage.updateUsage(request.getType(), request.getAmount());
+        return usageRepository.saveAndFlush(usage);
     }
 
     private void updateCache(Usage usage) {
-        try {
-            UsageDTO usageDTO = usageMapper.toDTO(usage);
-            String cacheKey = String.format("usage:%s", usage.getUserId());
-            cacheService.set(cacheKey, usageDTO);
-        } catch (Exception e) {
-            log.error("Failed to update <<<<cache>>>> for userId: {}, error: {}",
-                    usage.getUserId(), e.getMessage());
-        }
+        String cacheKey = String.format("usage:%s", usage.getUserId());
+        UsageDTO usageDTO = usageMapper.toDTO(usage);
+        cacheService.set(cacheKey, usageDTO);
     }
 }
