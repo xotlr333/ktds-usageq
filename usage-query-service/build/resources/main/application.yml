@@ -1,8 +1,17 @@
 spring:
-  redis:
-    host: ${REDIS_HOST:localhost}
-    port: ${REDIS_PORT:6379}
-    ttl: ${REDIS_TTL:600}
+  data:
+    redis:
+      host: ${REDIS_HOST:20.249.198.38}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:P@ssw0rd}
+      ttl: ${REDIS_TTL:600}
+      timeout: 3000 # 연결 타임아웃: 3초
+      lettuce: # Redis 클라이언트로 Lettuce 사용
+        pool:
+          max-active: 8  # 최대 연결 수
+          max-idle: 8    # 최대 유휴 연결 수
+          min-idle: 0    # 최소 유휴 연결 수
+          max-wait: 1000 # 최대 대기 시간
   datasource:
     url: ${DB_URL:jdbc:postgresql://20.249.197.182:5432/telecomdb}
     username: ${DB_USERNAME:telecomuser}
@@ -14,3 +23,16 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
+
+#management:
+#  endpoints:
+#    web:
+#      base-path: /actuator  # 기본 경로 명시
+#      exposure:
+#        include: health,info
+#  endpoint:
+#    health:
+#      enabled: true
+#      show-details: always
+#      probes:
+#        enabled: true    # Kubernetes liveness/readiness probe 활성화

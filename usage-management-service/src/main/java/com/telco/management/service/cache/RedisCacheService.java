@@ -4,11 +4,13 @@ import com.telco.common.dto.CacheStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -59,10 +61,10 @@ public class RedisCacheService<T> implements ICacheService<T> {
     @Override
     public CacheStatus getStatus() {
         try {
-            Long dbSize = redisTemplate.getConnectionFactory().getConnection().dbSize();
-            Long keyCount = Optional.ofNullable(redisTemplate.keys("*"))
-                    .map(keys -> (long) keys.size())
-                    .orElse(0L);
+            RedisConnection connection = redisTemplate.getConnectionFactory().getConnection();
+            Long dbSize = connection.serverCommands().dbSize();
+            Set<String> keys = redisTemplate.keys("*");
+            long keyCount = keys != null ? keys.size() : 0;
 
             return CacheStatus.builder()
                     .totalSize(dbSize)

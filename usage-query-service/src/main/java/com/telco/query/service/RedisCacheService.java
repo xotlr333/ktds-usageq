@@ -4,9 +4,12 @@ import com.telco.common.dto.CacheStatus;
 import com.telco.common.dto.UsageDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -39,12 +42,6 @@ public class RedisCacheService implements ICacheService<UsageDTO> {
 
     @Override
     public void set(String key, UsageDTO value) {
-//        try {
-//            redisTemplate.opsForValue().set(key, value);
-//            redisTemplate.expire(key, redisTtl, TimeUnit.SECONDS);
-//        } catch (Exception e) {
-//            log.error("Failed to set value to cache - key: {}, error: {}", key, e.getMessage());
-//        }
         try {
             log.debug("Attempting to set cache value for key: {}", key);
             boolean result = Boolean.TRUE.equals(
@@ -57,7 +54,7 @@ public class RedisCacheService implements ICacheService<UsageDTO> {
             }
         } catch (Exception e) {
             log.error("Failed to set value to cache - key: {}, error: {}", key, e.getMessage());
-            log.error("Detailed error: ", e);  // 스택 트레이스 출력
+            log.error("Detailed error: ", e);
         }
     }
 
@@ -73,9 +70,10 @@ public class RedisCacheService implements ICacheService<UsageDTO> {
     @Override
     public CacheStatus getStatus() {
         try {
-            Long dbSize = redisTemplate.getConnectionFactory().getConnection().dbSize();
-            // int를 Long으로 명시적 변환
-            Long keyCount = (long) redisTemplate.keys("*").size();
+            RedisConnection connection = redisTemplate.getConnectionFactory().getConnection();
+            Long dbSize = connection.serverCommands().dbSize();
+            Set<String> keys = redisTemplate.keys("*");
+            Long keyCount = keys != null ? (long) keys.size() : 0L;
 
             return CacheStatus.builder()
                     .totalSize(dbSize)
