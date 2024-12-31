@@ -21,10 +21,12 @@ public class UsageQueueConsumer {
     private final ICacheService<UsageDTO> cacheService;
     private final UsageMapper usageMapper;
 
-    @RabbitListener(queues = "usage.queue")
+    @RabbitListener(queues = "usage.queue",
+            containerFactory = "rabbitListenerContainerFactory",
+            returnExceptions = "false")
     @Transactional
     public void processUsageUpdate(UsageUpdateRequest request) {
-        log.info("Received usage update request for userId: {}", request.getUserId());
+        log.info("Received usage update request for userId: {}", request.getAmount());
 
         try {
             Usage usage = usageRepository.findByUserIdWithLock(request.getUserId())
@@ -35,10 +37,10 @@ public class UsageQueueConsumer {
 
             updateCache(usage);
 
-            log.info("Successfully processed usage update cache for userId: {}", request.getUserId());
+            log.info("aa Successfully processed usage update cache for userId: {}", request.getUserId());
 
         } catch (Exception e) {
-            log.error("Failed to process usage update cache for userId: {}, error: {}",
+            log.error("sssssssss Failed to process usage update cache for userId: {}, error: {}",
                     request.getUserId(), e.getMessage());
             throw e;
         }

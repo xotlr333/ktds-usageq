@@ -22,7 +22,7 @@ public class MessageUsage {
     }
 
     public void addUsage(long amount) {
-        this.totalUsage += amount;
+        this.totalUsage = amount;
         calculateExcessUsage();
     }
 

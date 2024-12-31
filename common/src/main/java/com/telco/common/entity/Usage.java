@@ -62,7 +62,7 @@ public class Usage {
 
     public void updateUsage(String type, long amount) {
         switch (type) {
-            case "VOICE" -> voiceUsage.addUsage(amount);
+            case "VOICE" -> voiceUsage.addUsage(amount) ;
             case "VIDEO" -> videoUsage.addUsage(amount);
             case "MESSAGE" -> messageUsage.addUsage(amount);
             case "DATA" -> dataUsage.addUsage(amount);

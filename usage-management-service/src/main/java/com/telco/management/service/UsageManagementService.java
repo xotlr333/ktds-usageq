@@ -16,7 +16,7 @@ public class UsageManagementService {
 
     public void updateUsage(UsageUpdateRequest request) {
         try {
-            log.info("Sending usage update message to queue - userId: {}, type: {}, amount: {}",
+            log.info("userId: {}, type: {}, amount: {}",
                     request.getUserId(), request.getType(), request.getAmount());
 
             rabbitTemplate.convertAndSend("usage.exchange", "usage.update", request);

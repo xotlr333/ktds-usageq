@@ -23,7 +23,7 @@ public class UsageController {
     @Operation(summary = "사용량 업데이트", description = "사용자의 사용량을 실시간으로 업데이트합니다.")
     @PostMapping("/update")
     public ResponseEntity<ApiResponse<Void>> updateUsage(@RequestBody UsageUpdateRequest request) {
-        log.info("Received usage update request - userId: {}, type: {}, amount: {}",
+        log.info("OK --------------- Received usage update request - userId: {}, type: {}, amount: {}",
                 request.getUserId(), request.getType(), request.getAmount());
 
         usageManagementService.updateUsage(request);

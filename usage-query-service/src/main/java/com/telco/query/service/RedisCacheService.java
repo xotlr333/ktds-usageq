@@ -44,14 +44,9 @@ public class RedisCacheService implements ICacheService<UsageDTO> {
     public void set(String key, UsageDTO value) {
         try {
             log.debug("Attempting to set cache value for key: {}", key);
-            boolean result = Boolean.TRUE.equals(
-                    redisTemplate.opsForValue().setIfAbsent(key, value, redisTtl, TimeUnit.SECONDS)
-            );
-            if (result) {
-                log.debug("Successfully set cache value for key: {}", key);
-            } else {
-                log.warn("Failed to set cache value for key: {}", key);
-            }
+            // setIfAbsent 대신 set 사용
+            redisTemplate.opsForValue().set(key, value, redisTtl, TimeUnit.SECONDS);
+            log.debug("Successfully set cache value for key: {}", key);
         } catch (Exception e) {
             log.error("Failed to set value to cache - key: {}, error: {}", key, e.getMessage());
             log.error("Detailed error: ", e);
