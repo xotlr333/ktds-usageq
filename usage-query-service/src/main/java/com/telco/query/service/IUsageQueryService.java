@@ -1,7 +1,9 @@
 package com.telco.query.service;
 
+import com.telco.common.dto.ApiResponse;
 import com.telco.common.dto.UsageDTO;
+import org.springframework.http.ResponseEntity;
 
 public interface IUsageQueryService {
-    UsageDTO getUserUsage(String userId);
+    ResponseEntity<ApiResponse<UsageDTO>> getUserUsage(String userId);
 }

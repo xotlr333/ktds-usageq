@@ -22,7 +22,6 @@ public class UsageController {
     public ResponseEntity<ApiResponse<UsageDTO>> getUserUsage(
             @Parameter(description = "사용자 ID", required = true)
             @PathVariable String userId) {
-        return ResponseEntity.ok(ApiResponse.success(usageQueryService.getUserUsage(userId)));
+        return usageQueryService.getUserUsage(userId);
     }
 }
-
