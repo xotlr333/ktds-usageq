@@ -171,7 +171,7 @@ jobs:
           QUERY_READY=$(kubectl get deploy usage-query -n ${{ env.NAMESPACE }} -o jsonpath='{.status.readyReplicas}')
           MANAGEMENT_READY=$(kubectl get deploy usage-management -n ${{ env.NAMESPACE }} -o jsonpath='{.status.readyReplicas}')
           
-          if [ "$QUERY_READY" != "2" ] || [ "$MANAGEMENT_READY" != "2" ]; then
+          if [ "$QUERY_READY" != "1" ] || [ "$MANAGEMENT_READY" != "1" ]; then
             echo "Deployment failed - not all replicas are ready"
             exit 1
           fi
