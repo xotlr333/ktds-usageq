@@ -160,7 +160,7 @@ jobs:
           export REGISTRY=${{ env.REGISTRY }}
           
           # Generate manifest using template and environment variables
-          envsubst < manifest.yaml > generated-manifest.yaml
+          envsubst < deployment/manifest.yaml > generated-manifest.yaml
           
           # Print generated manifest for debugging
           echo "Generated Kubernetes manifest:"
