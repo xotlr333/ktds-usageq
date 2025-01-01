@@ -97,13 +97,13 @@ jobs:
       - name: Build and push query service image
         run: |
           docker build -t ${{ env.REGISTRY }}/usage-query:${{ steps.generate_tag.outputs.tag }} \
-            -f Dockerfile-usage-query .
+            -f deployment/Dockerfile-usage-query .
           docker push ${{ env.REGISTRY }}/usage-query:${{ steps.generate_tag.outputs.tag }}
 
       - name: Build and push management service image
         run: |
           docker build -t ${{ env.REGISTRY }}/usage-management:${{ steps.generate_tag.outputs.tag }} \
-            -f Dockerfile-usage-management .
+            -f deployment/Dockerfile-usage-management .
           docker push ${{ env.REGISTRY }}/usage-management:${{ steps.generate_tag.outputs.tag }}
 
   deploy:
