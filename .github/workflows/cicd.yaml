@@ -59,8 +59,16 @@ jobs:
   docker-build:
     needs: build
     runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.generate_tag.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Generate image tag
+        id: generate_tag
+        run: |
+          TAG=$(date +'%Y%m%d%H%M%S')
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
 
       - name: Download query service artifact
         uses: actions/download-artifact@v3
@@ -82,32 +90,28 @@ jobs:
       - name: Login to Azure Container Registry
         uses: azure/docker-login@v1
         with:
-          login-server: usageqcr.azurecr.io
+          login-server: ${{ env.REGISTRY }}
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Build and push query service image
         run: |
-          docker build -t ${{ env.REGISTRY }}/telecom/usage-query:${{ github.sha }} \
-            -f deployment/Dockerfile-usage-query .
-          docker tag ${{ env.REGISTRY }}/telecom/usage-query:${{ github.sha }} \
-            ${{ env.REGISTRY }}/telecom/usage-query:latest
-          docker push ${{ env.REGISTRY }}/telecom/usage-query:${{ github.sha }}
-          docker push ${{ env.REGISTRY }}/telecom/usage-query:latest
+          docker build -t ${{ env.REGISTRY }}/usage-query:${{ steps.generate_tag.outputs.tag }} \
+            -f Dockerfile-usage-query .
+          docker push ${{ env.REGISTRY }}/usage-query:${{ steps.generate_tag.outputs.tag }}
 
       - name: Build and push management service image
         run: |
-          docker build -t ${{ env.REGISTRY }}/telecom/usage-management:${{ github.sha }} \
-            -f deployment/Dockerfile-usage-management .
-          docker tag ${{ env.REGISTRY }}/telecom/usage-management:${{ github.sha }} \
-            ${{ env.REGISTRY }}/telecom/usage-management:latest
-          docker push ${{ env.REGISTRY }}/telecom/usage-management:${{ github.sha }}
-          docker push ${{ env.REGISTRY }}/telecom/usage-management:latest
+          docker build -t ${{ env.REGISTRY }}/usage-management:${{ steps.generate_tag.outputs.tag }} \
+            -f Dockerfile-usage-management .
+          docker push ${{ env.REGISTRY }}/usage-management:${{ steps.generate_tag.outputs.tag }}
 
   deploy:
     needs: docker-build
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment || 'dev' }}
+    env:
+      IMAGE_TAG: ${{ needs.docker-build.outputs.image_tag }}
 
     steps:
       - uses: actions/checkout@v4
@@ -149,29 +153,28 @@ jobs:
             --from-literal=RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }} \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Deploy applications
+      - name: Generate and apply Kubernetes manifests
         run: |
-          # Update manifest with current image tags
-          cat deployment/manifest.yaml | \
-            sed "s|image: .*usage-query.*|image: ${{ env.REGISTRY }}/telecom/usage-query:${{ github.sha }}|g" | \
-            sed "s|image: .*usage-management.*|image: ${{ env.REGISTRY }}/telecom/usage-management:${{ github.sha }}|g" | \
-            kubectl apply -f -
+          # Set environment variables for manifest generation
+          export IMAGE_TAG=${{ env.IMAGE_TAG }}
+          export REGISTRY=${{ env.REGISTRY }}
+          
+          # Generate manifest using template and environment variables
+          envsubst < manifest.yaml > generated-manifest.yaml
+          
+          # Print generated manifest for debugging
+          echo "Generated Kubernetes manifest:"
+          cat generated-manifest.yaml
+          
+          # Apply manifest
+          kubectl apply -f generated-manifest.yaml
 
       - name: Verify deployment
         run: |
-          echo "Waiting for services to be ready..."
-          kubectl rollout status deployment/usage-query -n ${{ env.NAMESPACE }} --timeout=300s
           kubectl rollout status deployment/usage-management -n ${{ env.NAMESPACE }} --timeout=300s
-          
+          kubectl rollout status deployment/usage-query -n ${{ env.NAMESPACE }} --timeout=300s
+
+      - name: Print service endpoints
+        run: |
           echo "Service endpoints:"
           kubectl get services -n ${{ env.NAMESPACE }}
-
-      - name: Check deployment status
-        run: |
-          QUERY_READY=$(kubectl get deploy usage-query -n ${{ env.NAMESPACE }} -o jsonpath='{.status.readyReplicas}')
-          MANAGEMENT_READY=$(kubectl get deploy usage-management -n ${{ env.NAMESPACE }} -o jsonpath='{.status.readyReplicas}')
-          
-          if [ "$QUERY_READY" != "1" ] || [ "$MANAGEMENT_READY" != "1" ]; then
-            echo "Deployment failed - not all replicas are ready"
-            exit 1
-          fi

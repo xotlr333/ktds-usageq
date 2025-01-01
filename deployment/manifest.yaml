@@ -14,14 +14,14 @@ spec:
         app: usage-management
     spec:
       containers:
-      - name: usage-management
-        image: usageqcr.azurecr.io/telecom/usage-management:latest
-        imagePullPolicy: Always
-        envFrom:
-        - configMapRef:
-            name: app-config
-        - secretRef:
-            name: app-secret
+        - name: usage-management
+          image: usageqcr.azurecr.io/telecom/usage-management:latest
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secret
 ---
 apiVersion: v1
 kind: Service
@@ -31,8 +31,8 @@ spec:
   selector:
     app: usage-management
   ports:
-  - port: 8080
-    targetPort: 8080
+    - port: 8080
+      targetPort: 8080
   type: LoadBalancer
 ---
 # Usage Query Service
@@ -51,14 +51,14 @@ spec:
         app: usage-query
     spec:
       containers:
-      - name: usage-query
-        image: usageqcr.azurecr.io/telecom/usage-query:latest
-        imagePullPolicy: Always
-        envFrom:
-        - configMapRef:
-            name: app-config
-        - secretRef:
-            name: app-secret
+        - name: usage-query
+          image: usageqcr.azurecr.io/telecom/usage-query:latest
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secret
 ---
 apiVersion: v1
 kind: Service
@@ -68,6 +68,6 @@ spec:
   selector:
     app: usage-query
   ports:
-  - port: 8080
-    targetPort: 8080
+    - port: 8080
+      targetPort: 8080
   type: LoadBalancer
