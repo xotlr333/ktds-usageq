@@ -153,6 +153,18 @@ jobs:
             --from-literal=RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }} \
             --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Clean up existing resources
+        run: |
+          echo "Cleaning up existing resources..."
+          kubectl delete deployment,service -n ${{ env.NAMESPACE }} -l app=usage-query --ignore-not-found
+          kubectl delete deployment,service -n ${{ env.NAMESPACE }} -l app=usage-management --ignore-not-found
+          
+          # Wait for resources to be fully deleted
+          echo "Waiting for resources to be cleaned up..."
+          kubectl wait --for=delete deployment -l app=usage-query -n ${{ env.NAMESPACE }} --timeout=60s || true
+          kubectl wait --for=delete deployment -l app=usage-management -n ${{ env.NAMESPACE }} --timeout=60s || true
+
+
       - name: Generate and apply Kubernetes manifests
         run: |
           # Set environment variables for manifest generation
