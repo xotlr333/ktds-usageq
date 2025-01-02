@@ -115,7 +115,7 @@ jobs:
   deploy:
     needs: docker-build
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment || 'dev' }}
+    environment: ${{ github.event.inputs.environment || 'prod' }}
     env:
       IMAGE_TAG: ${{ needs.docker-build.outputs.image_tag }}
 
@@ -142,7 +142,7 @@ jobs:
           # Create ConfigMap
           kubectl create configmap app-config \
             --namespace ${{ env.NAMESPACE }} \
-            --from-literal=SPRING_PROFILES_ACTIVE=${{ github.event.inputs.environment || 'dev' }} \
+            --from-literal=SPRING_PROFILES_ACTIVE=${{ github.event.inputs.environment || 'prod' }} \
             --from-literal=SERVER_PORT=8080 \
             --dry-run=client -o yaml | kubectl apply -f -
 
