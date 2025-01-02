@@ -96,15 +96,21 @@ jobs:
 
       - name: Build and push query service image
         run: |
-          docker build -t ${{ env.REGISTRY }}/usage-query:${{ steps.generate_tag.outputs.tag }} \
+          docker build -t ${{ env.REGISTRY }}/telecom/usage-query:${{ steps.generate_tag.outputs.tag }} \
             -f deployment/Dockerfile-usage-query .
-          docker push ${{ env.REGISTRY }}/usage-query:${{ steps.generate_tag.outputs.tag }}
+          docker tag ${{ env.REGISTRY }}/telecom/usage-query:${{ steps.generate_tag.outputs.tag }} \
+            ${{ env.REGISTRY }}/telecom/usage-query:latest
+          docker push ${{ env.REGISTRY }}/telecom/usage-query:${{ steps.generate_tag.outputs.tag }}
+          docker push ${{ env.REGISTRY }}/telecom/usage-query:latest
 
       - name: Build and push management service image
         run: |
-          docker build -t ${{ env.REGISTRY }}/usage-management:${{ steps.generate_tag.outputs.tag }} \
+          docker build -t ${{ env.REGISTRY }}/telecom/usage-management:${{ steps.generate_tag.outputs.tag }} \
             -f deployment/Dockerfile-usage-management .
-          docker push ${{ env.REGISTRY }}/usage-management:${{ steps.generate_tag.outputs.tag }}
+          docker tag ${{ env.REGISTRY }}/telecom/usage-management:${{ steps.generate_tag.outputs.tag }} \
+            ${{ env.REGISTRY }}/telecom/usage-management:latest
+          docker push ${{ env.REGISTRY }}/telecom/usage-management:${{ steps.generate_tag.outputs.tag }}
+          docker push ${{ env.REGISTRY }}/telecom/usage-management:latest
 
   deploy:
     needs: docker-build
