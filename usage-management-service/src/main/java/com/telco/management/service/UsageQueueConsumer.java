@@ -51,7 +51,7 @@ public class UsageQueueConsumer {
 
     private void updateUsageByType(Usage usage, String type, long amount) {
         switch (type.toUpperCase()) {
-            case "VOICE" -> {
+            case "V" -> {
                 if (usage.getVoiceUsage() == null) {
                     usage.setVoiceUsage(VoiceUsage.builder()
                             .totalUsage(amount)
@@ -61,7 +61,7 @@ public class UsageQueueConsumer {
                     usage.getVoiceUsage().addUsage(amount);
                 }
             }
-            case "VIDEO" -> {
+            case "P" -> {
                 if (usage.getVideoUsage() == null) {
                     usage.setVideoUsage(VideoUsage.builder()
                             .totalUsage(amount)
@@ -71,7 +71,7 @@ public class UsageQueueConsumer {
                     usage.getVideoUsage().addUsage(amount);
                 }
             }
-            case "MESSAGE" -> {
+            case "T" -> {
                 if (usage.getMessageUsage() == null) {
                     usage.setMessageUsage(MessageUsage.builder()
                             .totalUsage(amount)
@@ -81,7 +81,7 @@ public class UsageQueueConsumer {
                     usage.getMessageUsage().addUsage(amount);
                 }
             }
-            case "DATA" -> {
+            case "D" -> {
                 if (usage.getDataUsage() == null) {
                     usage.setDataUsage(DataUsage.builder()
                             .totalUsage(amount)
