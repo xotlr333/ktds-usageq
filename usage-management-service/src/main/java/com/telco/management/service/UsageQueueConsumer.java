@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -35,83 +36,51 @@ public class UsageQueueConsumer {
             Usage usage = usageRepository.findByUserIdWithLock(request.getUserId())
                     .orElseGet(() -> createNewUsage(request.getUserId()));
 
-            updateUsageByType(usage, request.getType(), request.getAmount());
-            usageRepository.save(usage);
+            UsageType usageType = UsageType.fromCode(request.getType());
+            usage.updateUsage(usageType, request.getAmount());
 
-            updateCache(usage);
+            Usage savedUsage = usageRepository.save(usage);
+            updateCache(savedUsage);
 
-            log.info("Successfully processed usage update for userId: {}", request.getUserId());
+            log.info("Successfully processed usage update - userId: {}, type: {}, createdAt: {}, updatedAt: {}",
+                    savedUsage.getUserId(), usageType, savedUsage.getCreatedAt(), savedUsage.getUpdatedAt());
 
         } catch (Exception e) {
-            log.error("Failed to process usage update for userId: {}, error: {}",
+            log.error("Failed to process usage update - userId: {}, error: {}",
                     request.getUserId(), e.getMessage());
             throw e;
         }
     }
 
-    private void updateUsageByType(Usage usage, String type, long amount) {
-        switch (type.toUpperCase()) {
-            case "V" -> {
-                if (usage.getVoiceUsage() == null) {
-                    usage.setVoiceUsage(VoiceUsage.builder()
-                            .totalUsage(amount)
-                            .freeUsage(18000L)
-                            .build());
-                } else {
-                    usage.getVoiceUsage().addUsage(amount);
-                }
-            }
-            case "P" -> {
-                if (usage.getVideoUsage() == null) {
-                    usage.setVideoUsage(VideoUsage.builder()
-                            .totalUsage(amount)
-                            .freeUsage(7200L)
-                            .build());
-                } else {
-                    usage.getVideoUsage().addUsage(amount);
-                }
-            }
-            case "T" -> {
-                if (usage.getMessageUsage() == null) {
-                    usage.setMessageUsage(MessageUsage.builder()
-                            .totalUsage(amount)
-                            .freeUsage(300L)
-                            .build());
-                } else {
-                    usage.getMessageUsage().addUsage(amount);
-                }
-            }
-            case "D" -> {
-                if (usage.getDataUsage() == null) {
-                    usage.setDataUsage(DataUsage.builder()
-                            .totalUsage(amount)
-                            .freeUsage(5368709120L) // 5GB in bytes
-                            .build());
-                } else {
-                    usage.getDataUsage().addUsage(amount);
-                }
-            }
-            default -> throw new IllegalArgumentException("Invalid usage type: " + type);
-        }
-    }
-
     private Usage createNewUsage(String userId) {
+        log.info("Creating new usage record for userId: {}", userId);
         return Usage.builder()
                 .userId(userId)
-                .voiceUsage(VoiceUsage.builder().totalUsage(0L).freeUsage(18000L).build())
-                .videoUsage(VideoUsage.builder().totalUsage(0L).freeUsage(7200L).build())
-                .messageUsage(MessageUsage.builder().totalUsage(0L).freeUsage(300L).build())
-                .dataUsage(DataUsage.builder().totalUsage(0L).freeUsage(5368709120L).build())
+                .voiceUsage(VoiceUsage.builder()
+                        .totalUsage(0L)
+                        .freeUsage(UsageType.VOICE.getFreeUsage())
+                        .build())
+                .videoUsage(VideoUsage.builder()
+                        .totalUsage(0L)
+                        .freeUsage(UsageType.VIDEO.getFreeUsage())
+                        .build())
+                .messageUsage(MessageUsage.builder()
+                        .totalUsage(0L)
+                        .freeUsage(UsageType.MESSAGE.getFreeUsage())
+                        .build())
+                .dataUsage(DataUsage.builder()
+                        .totalUsage(0L)
+                        .freeUsage(UsageType.DATA.getFreeUsage())
+                        .build())
                 .build();
     }
 
     private void updateCache(Usage usage) {
         try {
-            UsageDTO usageDTO = usageMapper.toDTO(usage);
             String cacheKey = String.format("usage:%s", usage.getUserId());
-            cacheService.set(cacheKey, usageDTO);
+            cacheService.set(cacheKey, usageMapper.toDTO(usage));
         } catch (Exception e) {
-            log.error("Failed to update cache for userId: {}, error: {}",
+            log.error("Failed to update cache - userId: {}, error: {}",
                     usage.getUserId(), e.getMessage());
         }
     }

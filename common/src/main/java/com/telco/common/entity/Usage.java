@@ -1,16 +1,15 @@
 package com.telco.common.entity;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "usages")
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Usage {
     @Id
@@ -20,13 +19,10 @@ public class Usage {
     @Column(nullable = false, length = 50)
     private String userId;
 
-    // 시간 설정 메서드 추가
-    @Setter
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Setter
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     @Embedded
@@ -69,15 +65,32 @@ public class Usage {
         this.videoUsage = videoUsage;
         this.messageUsage = messageUsage;
         this.dataUsage = dataUsage;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = this.createdAt;
     }
 
-    public void updateUsage(String type, long amount) {
+    public void updateUsage(UsageType type, long amount) {
         switch (type) {
-            case "V" -> voiceUsage.addUsage(amount) ;
-            case "P" -> videoUsage.addUsage(amount);
-            case "T" -> messageUsage.addUsage(amount);
-            case "D" -> dataUsage.addUsage(amount);
-            default -> throw new IllegalArgumentException("Invalid usage type: " + type);
+            case VOICE -> {
+                voiceUsage.addUsage(amount);
+                updateModifiedTime();
+            }
+            case VIDEO -> {
+                videoUsage.addUsage(amount);
+                updateModifiedTime();
+            }
+            case MESSAGE -> {
+                messageUsage.addUsage(amount);
+                updateModifiedTime();
+            }
+            case DATA -> {
+                dataUsage.addUsage(amount);
+                updateModifiedTime();
+            }
         }
+    }
+
+    private void updateModifiedTime() {
+        this.updatedAt = LocalDateTime.now();
     }
 }
