@@ -12,6 +12,8 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -26,23 +28,70 @@ public class UsageQueueConsumer {
             returnExceptions = "false")
     @Transactional
     public void processUsageUpdate(UsageUpdateRequest request) {
-        log.info("Received usage update request for userId: {}", request.getAmount());
+        log.info("Received usage update request - userId: {}, type: {}, amount: {}",
+                request.getUserId(), request.getType(), request.getAmount());
 
         try {
             Usage usage = usageRepository.findByUserIdWithLock(request.getUserId())
                     .orElseGet(() -> createNewUsage(request.getUserId()));
 
-            usage.updateUsage(request.getType(), request.getAmount());
+            updateUsageByType(usage, request.getType(), request.getAmount());
             usageRepository.save(usage);
 
             updateCache(usage);
 
-            log.info("aa Successfully processed usage update cache for userId: {}", request.getUserId());
+            log.info("Successfully processed usage update for userId: {}", request.getUserId());
 
         } catch (Exception e) {
-            log.error(" Failed to process usage update cache for userId: {}, error: {}",
+            log.error("Failed to process usage update for userId: {}, error: {}",
                     request.getUserId(), e.getMessage());
             throw e;
+        }
+    }
+
+    private void updateUsageByType(Usage usage, String type, long amount) {
+        switch (type.toUpperCase()) {
+            case "VOICE" -> {
+                if (usage.getVoiceUsage() == null) {
+                    usage.setVoiceUsage(VoiceUsage.builder()
+                            .totalUsage(amount)
+                            .freeUsage(18000L)
+                            .build());
+                } else {
+                    usage.getVoiceUsage().addUsage(amount);
+                }
+            }
+            case "VIDEO" -> {
+                if (usage.getVideoUsage() == null) {
+                    usage.setVideoUsage(VideoUsage.builder()
+                            .totalUsage(amount)
+                            .freeUsage(7200L)
+                            .build());
+                } else {
+                    usage.getVideoUsage().addUsage(amount);
+                }
+            }
+            case "MESSAGE" -> {
+                if (usage.getMessageUsage() == null) {
+                    usage.setMessageUsage(MessageUsage.builder()
+                            .totalUsage(amount)
+                            .freeUsage(300L)
+                            .build());
+                } else {
+                    usage.getMessageUsage().addUsage(amount);
+                }
+            }
+            case "DATA" -> {
+                if (usage.getDataUsage() == null) {
+                    usage.setDataUsage(DataUsage.builder()
+                            .totalUsage(amount)
+                            .freeUsage(5368709120L) // 5GB in bytes
+                            .build());
+                } else {
+                    usage.getDataUsage().addUsage(amount);
+                }
+            }
+            default -> throw new IllegalArgumentException("Invalid usage type: " + type);
         }
     }
 
