@@ -41,8 +41,8 @@ jobs:
 
       - name: Build with Gradle
         run: |
-          ./gradlew :usage-query-service:clean :usage-query-service:build
           ./gradlew :usage-management-service:clean :usage-management-service:build
+          ./gradlew :usage-query-service:clean :usage-query-service:build
 
       - name: Upload query service artifact
         uses: actions/upload-artifact@v3
