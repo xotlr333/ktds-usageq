@@ -1,10 +1,11 @@
 package com.telco.common.entity;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import jakarta.persistence.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "usages")
@@ -17,6 +18,15 @@ public class Usage {
 
     @Column(nullable = false, length = 50)
     private String userId;
+
+    // 시간 설정 메서드 추가
+    @Setter
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Setter
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @Embedded
     @AttributeOverrides({
@@ -62,10 +72,10 @@ public class Usage {
 
     public void updateUsage(String type, long amount) {
         switch (type) {
-            case "VOICE" -> voiceUsage.addUsage(amount) ;
-            case "VIDEO" -> videoUsage.addUsage(amount);
-            case "MESSAGE" -> messageUsage.addUsage(amount);
-            case "DATA" -> dataUsage.addUsage(amount);
+            case "V" -> voiceUsage.addUsage(amount) ;
+            case "P" -> videoUsage.addUsage(amount);
+            case "T" -> messageUsage.addUsage(amount);
+            case "D" -> dataUsage.addUsage(amount);
             default -> throw new IllegalArgumentException("Invalid usage type: " + type);
         }
     }
