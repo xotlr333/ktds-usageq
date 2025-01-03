@@ -161,16 +161,18 @@ jobs:
 
       - name: Clean up existing resources
         run: |
-          echo "Cleaning up existing resources..."
-          # 명시적으로 pod도 포함하여 삭제
-          kubectl delete deployment -l app=usage-query -n ${{ env.NAMESPACE }} --ignore-not-found
-          kubectl delete deployment -l app=usage-management -n ${{ env.NAMESPACE }} --ignore-not-found
-          
-          # Pod가 완전히 종료될 때까지 대기
-          echo "Waiting for pods to be cleaned up..."
-          kubectl wait --for=delete pod -l app=usage-query -n ${{ env.NAMESPACE }} --timeout=60s || true
-          kubectl wait --for=delete pod -l app=usage-management -n ${{ env.NAMESPACE }} --timeout=60s || true
-          
+            echo "Cleaning up existing resources..."
+            
+            if kubectl get deployment -l app=usage-query -n ${{ env.NAMESPACE }} 2>/dev/null; then
+            kubectl delete deployment -l app=usage-query -n ${{ env.NAMESPACE }}
+            kubectl wait --for=delete pod -l app=usage-query -n ${{ env.NAMESPACE }} --timeout=60s || true
+            fi
+            
+            if kubectl get deployment -l app=usage-management -n ${{ env.NAMESPACE }} 2>/dev/null; then
+            kubectl delete deployment -l app=usage-management -n ${{ env.NAMESPACE }}
+            kubectl wait --for=delete pod -l app=usage-management -n ${{ env.NAMESPACE }} --timeout=60s || true
+            fi
+
       - name: Generate and apply Kubernetes manifests
         run: |
           # Set environment variables for manifest generation
