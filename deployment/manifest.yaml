@@ -17,8 +17,15 @@ spec:
     spec:
       containers:
         - name: usage-management
-          image: ${REGISTRY}/telecom/usage-management:${IMAGE_TAG}
+          image: usageqcr.azurecr.io/telecom/usage-management:latest
           imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: /etc/localtime
+              name: timezone-config
+          volumes:
+            - hostPath:
+                path: /usr/share/zoneinfo/Asia/Seoul
+              name: timezone-config
           resources:
             requests:
               cpu: "200m"
@@ -88,8 +95,15 @@ spec:
     spec:
       containers:
         - name: usage-query
-          image: ${REGISTRY}/telecom/usage-query:${IMAGE_TAG}
+          image: usageqcr.azurecr.io/telecom/usage-query:latest
           imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: /etc/localtime
+              name: timezone-config
+          volumes:
+            - hostPath:
+                path: /usr/share/zoneinfo/Asia/Seoul
+              name: timezone-config
           resources:
             requests:
               cpu: "200m"
