@@ -180,7 +180,7 @@ jobs:
 
       - name: Generate and apply Kubernetes manifests
         run: |
-          kubectl apply -f manifest.yaml
+          kubectl apply -f deployment/manifest.yaml
 #          # Set environment variables for manifest generation
 #          export IMAGE_TAG=${{ env.IMAGE_TAG }}
 #          export REGISTRY=${{ env.REGISTRY }}
