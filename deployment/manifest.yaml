@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: usage-management
+  namespace: usageq-ns
   labels: # 추가
     app: usage-management
 spec:
@@ -38,22 +39,23 @@ spec:
             - secretRef:
                 name: app-secret
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: usage-management
-spec:
-  selector:
-    app: usage-management
-  ports:
-    - port: 8080
-      targetPort: 8080
-  type: LoadBalancer
----
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: usage-management
+#spec:
+#  selector:
+#    app: usage-management
+#  ports:
+#    - port: 8080
+#      targetPort: 8080
+#  type: LoadBalancer
+#---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: usage-management-hpa
+  namespace: usageq-ns
   labels: # 추가
     app: usage-management
 spec:
@@ -82,6 +84,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: usage-query
+  namespace: usageq-ns
   labels: # 추가
     app: usage-query
 spec:
@@ -117,22 +120,23 @@ spec:
             - secretRef:
                 name: app-secret
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: usage-query
-spec:
-  selector:
-    app: usage-query
-  ports:
-    - port: 8080
-      targetPort: 8080
-  type: LoadBalancer
----
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: usage-query
+#spec:
+#  selector:
+#    app: usage-query
+#  ports:
+#    - port: 8080
+#      targetPort: 8080
+#  type: LoadBalancer
+#---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: usage-query-hpa
+  namespace: usageq-ns
   labels: # 추가
     app: usage-query
 spec:
