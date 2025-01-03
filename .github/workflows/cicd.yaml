@@ -161,17 +161,22 @@ jobs:
 
       - name: Clean up existing resources
         run: |
-            echo "Cleaning up existing resources..."
-            
-            if kubectl get deployment -l app=usage-query -n ${{ env.NAMESPACE }} 2>/dev/null; then
-            kubectl delete deployment -l app=usage-query -n ${{ env.NAMESPACE }}
-            kubectl wait --for=delete pod -l app=usage-query -n ${{ env.NAMESPACE }} --timeout=60s || true
-            fi
-            
-            if kubectl get deployment -l app=usage-management -n ${{ env.NAMESPACE }} 2>/dev/null; then
-            kubectl delete deployment -l app=usage-management -n ${{ env.NAMESPACE }}
-            kubectl wait --for=delete pod -l app=usage-management -n ${{ env.NAMESPACE }} --timeout=60s || true
-            fi
+          echo "Cleaning up existing resources..."
+          
+          if kubectl get deployment -l app=usage-query -n ${{ env.NAMESPACE }} 2>/dev/null; then
+          kubectl delete deployment -l app=usage-query -n ${{ env.NAMESPACE }}
+          fi
+          
+          if kubectl get deployment -l app=usage-management -n ${{ env.NAMESPACE }} 2>/dev/null; then
+          kubectl delete deployment -l app=usage-management -n ${{ env.NAMESPACE }}
+          fi
+      
+          # Wait for resources to be deleted
+          until [ -z "$(kubectl get pods -l app=usage-query -n ${{ env.NAMESPACE }} -o name 2>/dev/null)" ] && \
+          [ -z "$(kubectl get pods -l app=usage-management -n ${{ env.NAMESPACE }} -o name 2>/dev/null)" ]; do
+          echo "Waiting for pods to terminate..."
+          sleep 5
+          done
 
       - name: Generate and apply Kubernetes manifests
         run: |
@@ -195,12 +200,41 @@ jobs:
           sleep 30
           kubectl get all -n ${{ env.NAMESPACE }}
 
+#      - name: Verify deployment
+#        run: |
+#          echo "Checking deployment status..."
+#          kubectl get deployment -n ${{ env.NAMESPACE }}
+#          kubectl rollout status deployment/usage-management -n ${{ env.NAMESPACE }} --timeout=300s
+#          kubectl rollout status deployment/usage-query -n ${{ env.NAMESPACE }} --timeout=300s
+
       - name: Verify deployment
         run: |
           echo "Checking deployment status..."
-          kubectl get deployment -n ${{ env.NAMESPACE }}
-          kubectl rollout status deployment/usage-management -n ${{ env.NAMESPACE }} --timeout=300s
-          kubectl rollout status deployment/usage-query -n ${{ env.NAMESPACE }} --timeout=300s
+          
+          # Function to wait for deployment
+          wait_for_deployment() {
+            local deploy_name=$1
+            local max_attempts=10
+            local attempt=1
+          
+            while [ $attempt -le $max_attempts ]; do
+              echo "Checking $deploy_name deployment (attempt $attempt/$max_attempts)..."
+          
+              if kubectl get deployment $deploy_name -n ${{ env.NAMESPACE }}; then
+                kubectl rollout status deployment/$deploy_name -n ${{ env.NAMESPACE }} --timeout=60s
+                return 0
+              fi
+          
+              attempt=$((attempt + 1))
+              sleep 10
+            done
+          
+            echo "Error: $deploy_name deployment not found after $max_attempts attempts"
+            return 1
+          }
+          
+          wait_for_deployment usage-management
+          wait_for_deployment usage-query
 
       - name: Print service endpoints
         run: |
