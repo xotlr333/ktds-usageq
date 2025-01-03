@@ -170,6 +170,16 @@ jobs:
           echo "Waiting for pods to be cleaned up..."
           kubectl wait --for=delete deployment -l app=usage-query -n ${{ env.NAMESPACE }} --timeout=300s || true
           kubectl wait --for=delete deployment -l app=usage-management -n ${{ env.NAMESPACE }} --timeout=300s || true
+          
+          # 삭제 확인
+          echo "Verifying cleanup completion..."
+          REMAINING_DEPLOYMENTS=$(kubectl get deployment -n ${{ env.NAMESPACE }} -l 'app in (usage-query, usage-management)' 2>/dev/null)
+          if [ -z "$REMAINING_DEPLOYMENTS" ]; then
+          echo "All deployments successfully removed"
+          else
+          echo "Warning: Some deployments still exist:"
+          echo "$REMAINING_DEPLOYMENTS"
+          fi
 
       - name: Generate and apply Kubernetes manifests
         run: |
