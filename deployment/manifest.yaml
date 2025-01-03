@@ -54,6 +54,8 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: usage-management-hpa
+  labels: # 추가
+    app: usage-management
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -131,6 +133,8 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: usage-query-hpa
+  labels: # 추가
+    app: usage-query
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
