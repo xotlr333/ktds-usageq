@@ -193,7 +193,6 @@ jobs:
 #
 #          # Apply manifest
 #          kubectl apply -f generated-manifest.yaml
-          
           kubectl apply -f manifest.yaml
 
       - name: Wait for deployments to initialize
