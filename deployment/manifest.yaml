@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: usage-management
-          image: usageqcr.azurecr.io/telecom/usage-management:latest
+          image: ${REGISTRY}/telecom/usage-management:${IMAGE_TAG}
           imagePullPolicy: Always
           resources:
             requests:
@@ -88,7 +88,7 @@ spec:
     spec:
       containers:
         - name: usage-query
-          image: usageqcr.azurecr.io/telecom/usage-query:latest
+          image: ${REGISTRY}/telecom/usage-query:${IMAGE_TAG}
           imagePullPolicy: Always
           resources:
             requests:
