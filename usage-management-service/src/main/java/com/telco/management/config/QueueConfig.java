@@ -20,10 +20,10 @@ import org.springframework.amqp.support.converter.MessageConverter;
 @Configuration
 public class QueueConfig {
 
-    @Value("${spring.rabbitmq.listener.simple.retry.enabled:false}")  // true에서 false로 변경
+    @Value("${spring.rabbitmq.listener.simple.retry.enabled:true}")  // true에서 false로 변경
     private boolean retryEnabled;
 
-    @Value("${spring.rabbitmq.listener.simple.retry.max-attempts:1}")  // 3에서 1로 변경
+    @Value("${spring.rabbitmq.listener.simple.retry.max-attempts:3}")  // 3에서 1로 변경
     private int maxAttempts;
 
     @Bean
@@ -75,7 +75,7 @@ public class QueueConfig {
         RetryTemplate template = new RetryTemplate();
 
         SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-        retryPolicy.setMaxAttempts(0);  // 3에서 1로 변경
+        retryPolicy.setMaxAttempts(3);  // 3에서 1로 변경
 
         ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
         backOffPolicy.setInitialInterval(1000);

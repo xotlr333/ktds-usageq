@@ -1,9 +1,9 @@
 spring:
   data:
     redis:
-      host: ${REDIS_HOST:20.249.198.38}
+      host: ${REDIS_HOST:20.249.206.186}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:P@ssw0rd}
+      password: ${REDIS_PASSWORD:Passw0rd}
       ttl: ${REDIS_TTL:600}
       timeout: 3000 # 연결 타임아웃: 3초
       lettuce: # Redis 클라이언트로 Lettuce 사용
