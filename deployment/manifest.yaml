@@ -19,13 +19,6 @@ spec:
         - name: usage-management
           image: usageqcr.azurecr.io/telecom/usage-management:latest
           imagePullPolicy: Always
-          volumeMounts:
-            - mountPath: /etc/localtime
-              name: timezone-config
-          volumes:
-            - hostPath:
-                path: /usr/share/zoneinfo/Asia/Seoul
-              name: timezone-config
           resources:
             requests:
               cpu: "200m"
@@ -33,6 +26,9 @@ spec:
             limits:
               cpu: "500m"
               memory: "512Mi"
+          env:
+            - name: TZ
+              value: "Asia/Seoul"
           envFrom:
             - configMapRef:
                 name: app-config
@@ -97,13 +93,6 @@ spec:
         - name: usage-query
           image: usageqcr.azurecr.io/telecom/usage-query:latest
           imagePullPolicy: Always
-          volumeMounts:
-            - mountPath: /etc/localtime
-              name: timezone-config
-          volumes:
-            - hostPath:
-                path: /usr/share/zoneinfo/Asia/Seoul
-              name: timezone-config
           resources:
             requests:
               cpu: "200m"
@@ -111,6 +100,9 @@ spec:
             limits:
               cpu: "500m"
               memory: "512Mi"
+          env:
+            - name: TZ
+              value: "Asia/Seoul"
           envFrom:
             - configMapRef:
                 name: app-config
