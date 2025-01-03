@@ -23,13 +23,15 @@ spec:
           resources:
             requests:
               cpu: "200m"
-              memory: "256Mi"
+              memory: "384Mi"
             limits:
               cpu: "500m"
-              memory: "512Mi"
+              memory: "768Mi"
           env:
             - name: TZ
               value: "Asia/Seoul"
+            - name: JAVA_OPTS
+              value: "-Xms256m -Xmx512m -XX:+UseG1GC"
           envFrom:
             - configMapRef:
                 name: app-config
@@ -98,13 +100,15 @@ spec:
           resources:
             requests:
               cpu: "200m"
-              memory: "256Mi"
+              memory: "384Mi"
             limits:
               cpu: "500m"
-              memory: "512Mi"
+              memory: "768Mi"
           env:
             - name: TZ
               value: "Asia/Seoul"
+            - name: JAVA_OPTS
+              value: "-Xms256m -Xmx512m -XX:+UseG1GC"
           envFrom:
             - configMapRef:
                 name: app-config
