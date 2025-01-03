@@ -14,6 +14,7 @@ public class UsageUpdateRequest {
     private int retryCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String prodId; // 상품id
     
     public void incrementRetryCount() {
         this.retryCount++;

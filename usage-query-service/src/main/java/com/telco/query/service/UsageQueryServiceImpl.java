@@ -2,6 +2,7 @@ package com.telco.query.service;
 
 import com.telco.common.dto.ApiResponse;
 import com.telco.common.dto.UsageDTO;
+import com.telco.common.exception.InvalidUserException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -33,10 +34,13 @@ public class UsageQueryServiceImpl implements IUsageQueryService {
             // 2. Cache Miss인 경우 DB에서 조회
             Optional<UsageDTO> usage = usageDBService.findByUserId(userId);
 
+            // 존재하지 않는 회선번호인 경우
             if (usage.isEmpty()) {
-                return ResponseEntity
-                        .status(404)
-                        .body(ApiResponse.error(404, "요청하신 사용자의 사용량 정보가 존재하지 않습니다."));
+                log.warn("<<유효하지 않는 회선입니다.>> - Invalid user requested - userId: {}", userId);
+                // 빈 UsageDTO를 리턴
+                return ResponseEntity.ok(ApiResponse.success(UsageDTO.builder()
+                        .userId(userId)
+                        .build()));
             }
 
             try {
@@ -48,6 +52,11 @@ public class UsageQueryServiceImpl implements IUsageQueryService {
             }
 
             return ResponseEntity.ok(ApiResponse.success(usage.get()));
+        } catch (InvalidUserException e) {
+            log.error("Invalid user requested - userId: {}", userId);
+            return ResponseEntity
+                    .status(404)
+                    .body(ApiResponse.error(404, e.getMessage()));
         } catch (Exception e) {
             log.error("Error while getting usage data - userId: {}, error: {}", userId, e.getMessage());
             return ResponseEntity

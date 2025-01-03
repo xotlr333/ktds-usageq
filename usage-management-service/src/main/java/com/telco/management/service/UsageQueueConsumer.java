@@ -3,16 +3,20 @@ package com.telco.management.service;
 import com.telco.common.dto.UsageDTO;
 import com.telco.common.dto.UsageUpdateRequest;
 import com.telco.common.entity.*;
+import com.telco.common.exception.InvalidProductException;
+import com.telco.common.exception.InvalidUserException;
 import com.telco.management.mapper.UsageMapper;
+import com.telco.management.repository.ProductRepository;
 import com.telco.management.repository.UsageRepository;
 import com.telco.management.service.cache.ICacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.util.Optional;
 
 
 @Slf4j
@@ -27,14 +31,14 @@ public class UsageQueueConsumer {
     @RabbitListener(queues = "usage.queue",
             containerFactory = "rabbitListenerContainerFactory",
             returnExceptions = "false")
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processUsageUpdate(UsageUpdateRequest request) {
         log.info("Received usage update request - userId: {}, type: {}, amount: {}",
                 request.getUserId(), request.getType(), request.getAmount());
+//        Usage usage = null;
 
         try {
-            Usage usage = usageRepository.findByUserIdWithLock(request.getUserId())
-                    .orElseGet(() -> createNewUsage(request.getUserId()));
+            Usage usage = usageRepository.findByUserIdWithLock(request.getUserId());
 
             UsageType usageType = UsageType.fromCode(request.getType());
             usage.updateUsage(usageType, request.getAmount());
@@ -45,6 +49,10 @@ public class UsageQueueConsumer {
             log.info("Successfully processed usage update - userId: {}, type: {}, createdAt: {}, updatedAt: {}",
                     savedUsage.getUserId(), usageType, savedUsage.getCreatedAt(), savedUsage.getUpdatedAt());
 
+        } catch (InvalidUserException e) {
+            log.error("Invalid user for usage update - userId: {}, error: {}",
+                    request.getUserId(), e.getMessage());
+            throw e;
         } catch (Exception e) {
             log.error("Failed to process usage update - userId: {}, error: {}",
                     request.getUserId(), e.getMessage());

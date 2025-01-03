@@ -13,11 +13,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Usage {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @Column(nullable = false, length = 50)
-    private String userId;
+    private String userId;    // id 삭제하고 userId를 PK로 변경
+
+    @Column(name = "prod_id", nullable = false)    // offer_id -> prod_id로 변경
+    private String prodId;
+
+    @ManyToOne(fetch = FetchType.LAZY)    // 새로 추가: Product와의 관계 설정
+    @JoinColumn(name = "prod_id", insertable = false, updatable = false)
+    private Product product;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -58,9 +62,10 @@ public class Usage {
     private DataUsage dataUsage;
 
     @Builder
-    public Usage(String userId, VoiceUsage voiceUsage, VideoUsage videoUsage,
+    public Usage(String userId, String prodId, VoiceUsage voiceUsage, VideoUsage videoUsage,
                  MessageUsage messageUsage, DataUsage dataUsage) {
         this.userId = userId;
+        this.prodId = prodId;
         this.voiceUsage = voiceUsage;
         this.videoUsage = videoUsage;
         this.messageUsage = messageUsage;
