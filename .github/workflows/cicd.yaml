@@ -159,42 +159,40 @@ jobs:
             --from-literal=RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }} \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Clean up existing resources
-        run: |
-          echo "Cleaning up existing resources..."
-          
-          if kubectl get deployment -l app=usage-query -n ${{ env.NAMESPACE }} 2>/dev/null; then
-          kubectl delete deployment -l app=usage-query -n ${{ env.NAMESPACE }}
-          fi
-          
-          if kubectl get deployment -l app=usage-management -n ${{ env.NAMESPACE }} 2>/dev/null; then
-          kubectl delete deployment -l app=usage-management -n ${{ env.NAMESPACE }}
-          fi
-      
-          # Wait for resources to be deleted
-          until [ -z "$(kubectl get pods -l app=usage-query -n ${{ env.NAMESPACE }} -o name 2>/dev/null)" ] && \
-          [ -z "$(kubectl get pods -l app=usage-management -n ${{ env.NAMESPACE }} -o name 2>/dev/null)" ]; do
-          echo "Waiting for pods to terminate..."
-          sleep 5
-          done
+#      - name: Clean up existing resources
+#        run: |
+#          echo "Cleaning up existing resources..."
+#
+#          if kubectl get deployment -l app=usage-query -n ${{ env.NAMESPACE }} 2>/dev/null; then
+#          kubectl delete deployment -l app=usage-query -n ${{ env.NAMESPACE }}
+#          fi
+#
+#          if kubectl get deployment -l app=usage-management -n ${{ env.NAMESPACE }} 2>/dev/null; then
+#          kubectl delete deployment -l app=usage-management -n ${{ env.NAMESPACE }}
+#          fi
+#
+#          # Wait for resources to be deleted
+#          until [ -z "$(kubectl get pods -l app=usage-query -n ${{ env.NAMESPACE }} -o name 2>/dev/null)" ] && \
+#          [ -z "$(kubectl get pods -l app=usage-management -n ${{ env.NAMESPACE }} -o name 2>/dev/null)" ]; do
+#          echo "Waiting for pods to terminate..."
+#          sleep 5
+#          done
 
       - name: Generate and apply Kubernetes manifests
         run: |
-          kubectl apply -f deployment/manifest.yaml
-#          # Set environment variables for manifest generation
-#          export IMAGE_TAG=${{ env.IMAGE_TAG }}
-#          export REGISTRY=${{ env.REGISTRY }}
-#
-#          # Generate manifest using template and environment variables
-#          envsubst < deployment/manifest.yaml > generated-manifest.yaml
-#
-#          # Print generated manifest for debugging
-#          echo "Generated Kubernetes manifest:"
-#          cat generated-manifest.yaml
-#
-#          # Apply manifest
-#          kubectl apply -f generated-manifest.yaml
+          # Set environment variables for manifest generation
+          export IMAGE_TAG=${{ env.IMAGE_TAG }}
+          export REGISTRY=${{ env.REGISTRY }}
 
+          # Generate manifest using template and environment variables
+          envsubst < deployment/manifest.yaml > generated-manifest.yaml
+
+          # Print generated manifest for debugging
+          echo "Generated Kubernetes manifest:"
+          cat generated-manifest.yaml
+
+          # Apply manifest
+          kubectl apply -f generated-manifest.yaml
 
       - name: Wait for deployments to initialize
         run: |
