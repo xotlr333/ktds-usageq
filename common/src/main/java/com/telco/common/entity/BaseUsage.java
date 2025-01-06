@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public abstract class BaseUsage {
 
+    private static final long UNLIMITED_FREE_USAGE = 999_999_999L;
+
     @Column(name = "total_usage")
     protected long totalUsage;
 
@@ -31,6 +33,15 @@ public abstract class BaseUsage {
     }
 
     private void calculateExcessUsage() {
-        this.excessUsage = Math.max(0, totalUsage - freeUsage);
+        // 무제한인 경우 초과 사용량은 0으로 설정
+        if (this.freeUsage == UNLIMITED_FREE_USAGE) {
+            this.excessUsage = 0;
+        } else {
+            this.excessUsage = Math.max(0, totalUsage - freeUsage);
+        }
+    }
+
+    protected boolean isUnlimited() {
+        return this.freeUsage == UNLIMITED_FREE_USAGE;
     }
 }

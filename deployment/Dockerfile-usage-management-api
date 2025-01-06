@@ -1,6 +1,6 @@
 FROM openjdk:17-slim
 WORKDIR /app
-COPY management-service/usage-management-service.jar app.jar
+COPY management-api/usage-management-api.jar app.jar
 #ENTRYPOINT ["java","-jar","app.jar"]
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC"
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

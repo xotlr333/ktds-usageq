@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class VideoUsage {
+    private static final long UNLIMITED_FREE_USAGE = 999_999_999L;
+
     private long totalUsage;
     private long freeUsage;
     private long excessUsage;
@@ -27,6 +29,10 @@ public class VideoUsage {
     }
 
     private void calculateExcessUsage() {
-        this.excessUsage = Math.max(0, totalUsage - freeUsage);
+        if (this.freeUsage == UNLIMITED_FREE_USAGE) {
+            this.excessUsage = 0;
+        } else {
+            this.excessUsage = Math.max(0, totalUsage - freeUsage);
+        }
     }
 }
