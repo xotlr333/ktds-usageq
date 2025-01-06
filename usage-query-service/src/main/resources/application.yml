@@ -1,4 +1,7 @@
 spring:
+  app:
+    query:
+      delay-millis: 0  # 기본 딜레이 값 (밀리초)
   data:
     redis:
       host: ${REDIS_HOST:20.249.206.186}
