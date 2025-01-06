@@ -24,15 +24,20 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
 
-#management:
-#  endpoints:
-#    web:
-#      base-path: /actuator  # 기본 경로 명시
-#      exposure:
-#        include: health,info
-#  endpoint:
-#    health:
-#      enabled: true
-#      show-details: always
-#      probes:
-#        enabled: true    # Kubernetes liveness/readiness probe 활성화
+# monitor
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      app: usage-query-service
+      instance: ${HOSTNAME:localhost}:${server.port:8080}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        cache.operation: true
+      slo:
+        http.server.requests: 100ms, 500ms, 1s
+        cache.operation: 50ms, 100ms, 200ms

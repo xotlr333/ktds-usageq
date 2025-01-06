@@ -187,6 +187,10 @@ spec:
     metadata:
       labels:
         app: usage-query
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8080"  # **application.yml의 server.port와 반드시 동일해야 함**
     spec:
       containers:
         - name: usage-query

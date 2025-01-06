@@ -23,7 +23,20 @@ subprojects {
         mavenCentral()
     }
 
+    buildscript {
+        ext {
+            springBootVersion = '3.4.0'
+            // 추가
+            micrometer_version = '1.12.3'
+        }
+    }
+
     dependencies {
+        // Monitoring & Metrics
+        implementation 'org.springframework.boot:spring-boot-starter-actuator'
+        implementation "io.micrometer:micrometer-registry-prometheus:${micrometer_version}"
+
+
         implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
         // Spring Boot Core
