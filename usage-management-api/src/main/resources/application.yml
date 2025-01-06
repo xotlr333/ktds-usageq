@@ -10,7 +10,7 @@ spring:
 server:
   servlet:
     context-path: /    # 컨텍스트 패스 설정
-  port: 8081
+  port: 8080
 
 logging:
   level:
