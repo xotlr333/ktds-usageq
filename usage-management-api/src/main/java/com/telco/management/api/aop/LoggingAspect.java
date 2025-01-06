@@ -1,5 +1,5 @@
 // File: ktds-usageq/usage-management-service/src/main/java/com/telco/management/aop/LoggingAspect.java
-package com.telco.management.aop;
+package com.telco.management.api.aop;
 
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;

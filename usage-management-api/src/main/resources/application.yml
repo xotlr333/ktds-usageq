@@ -7,10 +7,22 @@ spring:
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
 
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://20.249.197.182:5432/telecomdb}
+    username: ${DB_USERNAME:telecomuser}
+    password: ${DB_PASSWORD:P@ssw0rd}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
 server:
   servlet:
     context-path: /    # 컨텍스트 패스 설정
-  port: 8080
+  port: 8081
+
 
 logging:
   level:

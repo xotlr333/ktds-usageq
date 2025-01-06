@@ -4,6 +4,10 @@ dependencies {
 
     // Spring Boot
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // Database
+    implementation 'org.postgresql:postgresql'
 
     // RabbitMQ
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
@@ -26,3 +30,8 @@ dependencies {
     implementation 'ch.qos.logback:logback-classic:1.4.14'
 }
 
+
+bootJar {
+    archiveFileName = "usage-management-api.jar"
+    mainClass = 'com.telco.management.api.UsageManagementApplication'
+}
