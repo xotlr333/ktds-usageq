@@ -45,6 +45,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: usage-management-api
+  labels:
+    app: usage-management-api
 spec:
   selector: # 타겟 Pod 설정
     app: usage-management-api
@@ -129,6 +131,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: usage-management-worker
+  labels:
+    app: usage-management-worker
 spec:
   selector: # 타겟 Pod 설정
     app: usage-management-worker
@@ -172,7 +176,7 @@ kind: Deployment
 metadata:
   name: usage-query
   namespace: usageq-ns
-  labels: # 추가
+  labels:
     app: usage-query
 spec:
   replicas: 1
@@ -211,6 +215,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: usage-query
+  labels:
+    app: usage-query
 spec:
   selector:
     app: usage-query
