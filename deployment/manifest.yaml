@@ -1,27 +1,28 @@
-# Usage Management Service
+# Usage Management Api
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: usage-management
+  name: usage-management-api
   namespace: usageq-ns
-  labels: # 추가
-    app: usage-management
+  labels:
+    app: usage-management-api
 spec:
-  replicas: 1
+  replicas: 1 # Pod 복제본 수
   selector:
     matchLabels:
-      app: usage-management
+      app: usage-management-api
   template:
     metadata:
       labels:
-        app: usage-management
+        app: usage-management-api
     spec:
       containers:
-        - name: usage-management
-#          image: ${REGISTRY}/telecom/usage-management:${IMAGE_TAG}
-          image: usageqcr.azurecr.io/telecom/usage-management:latest
-          imagePullPolicy: Always
-          resources:
+        - name: usage-management-api
+          # 컨테이너 이미지 지정
+          #          image: ${REGISTRY}/telecom/usage-management:${IMAGE_TAG}
+          image: usageqcr.azurecr.io/telecom/usage-management-api:latest
+          imagePullPolicy: Always # 항상 최신 이미지 사용
+          resources: # 리소스 제한 설정
             requests:
               cpu: "200m"
               memory: "384Mi"
@@ -33,51 +34,137 @@ spec:
               value: "Asia/Seoul"
             - name: JAVA_OPTS
               value: "-Xms256m -Xmx512m -XX:+UseG1GC"
-          envFrom:
+          envFrom: # 환경변수 참조
             - configMapRef:
                 name: app-config
             - secretRef:
                 name: app-secret
 ---
-#apiVersion: v1
-#kind: Service
-#metadata:
-#  name: usage-management
-#spec:
-#  selector:
-#    app: usage-management
-#  ports:
-#    - port: 8080
-#      targetPort: 8080
-#  type: LoadBalancer
-#---
+# 로드밸런서 생성
+apiVersion: v1
+kind: Service
+metadata:
+  name: usage-management-api
+spec:
+  selector: # 타겟 Pod 설정
+    app: usage-management-api
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: LoadBalancer
+---
+# 수평 자동 확장 설정
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: usage-management-hpa
+  name: usage-management-api-hpa
   namespace: usageq-ns
-  labels: # 추가
-    app: usage-management
+  labels:
+    app: usage-management-api
 spec:
-  scaleTargetRef:
+  scaleTargetRef: # 확장 대상 지정
     apiVersion: apps/v1
     kind: Deployment
-    name: usage-management
-  minReplicas: 1
-  maxReplicas: 10
-  metrics:
+    name: usage-management-api
+  minReplicas: 1 # 최소 Pod 수
+  maxReplicas: 10 # 최대 Pod 수
+  metrics: # 확장 기준 설정
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: 70
+          averageUtilization: 70 # CPU 사용률 70% 초과시 확장
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: 80
+          averageUtilization: 80 # 메모리 사용률 80% 초과시 확장
+---
+# Usage Management Worker
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: usage-management-worker
+  namespace: usageq-ns
+  labels:
+    app: usage-management-worker
+spec:
+  replicas: 1 # Pod 복제본 수
+  selector:
+    matchLabels:
+      app: usage-management-worker
+  template:
+    metadata:
+      labels:
+        app: usage-management-worker
+    spec:
+      containers:
+        - name: usage-management-worker
+          # 컨테이너 이미지 지정
+          #          image: ${REGISTRY}/telecom/usage-management:${IMAGE_TAG}
+          image: usageqcr.azurecr.io/telecom/usage-management-worker:latest
+          imagePullPolicy: Always # 항상 최신 이미지 사용
+          resources: # 리소스 제한 설정
+            requests:
+              cpu: "200m"
+              memory: "384Mi"
+            limits:
+              cpu: "500m"
+              memory: "768Mi"
+          env:
+            - name: TZ
+              value: "Asia/Seoul"
+            - name: JAVA_OPTS
+              value: "-Xms256m -Xmx512m -XX:+UseG1GC"
+          envFrom: # 환경변수 참조
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secret
+---
+# 로드밸런서 생성
+apiVersion: v1
+kind: Service
+metadata:
+  name: usage-management-worker
+spec:
+  selector: # 타겟 Pod 설정
+    app: usage-management-worker
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: LoadBalancer
+---
+# 수평 자동 확장 설정
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: usage-management-hpa
+  namespace: usageq-ns
+  labels:
+    app: usage-management-worker
+spec:
+  scaleTargetRef: # 확장 대상 지정
+    apiVersion: apps/v1
+    kind: Deployment
+    name: usage-management-worker
+  minReplicas: 1 # 최소 Pod 수
+  maxReplicas: 10 # 최대 Pod 수
+  metrics: # 확장 기준 설정
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70 # CPU 사용률 70% 초과시 확장
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80 # 메모리 사용률 80% 초과시 확장
 ---
 # Usage Query Service
 apiVersion: apps/v1
@@ -99,7 +186,7 @@ spec:
     spec:
       containers:
         - name: usage-query
-#          image: ${REGISTRY}/telecom/usage-query:${IMAGE_TAG}
+          #          image: ${REGISTRY}/telecom/usage-query:${IMAGE_TAG}
           image: usageqcr.azurecr.io/telecom/usage-query:latest
           imagePullPolicy: Always
           resources:
@@ -120,24 +207,24 @@ spec:
             - secretRef:
                 name: app-secret
 ---
-#apiVersion: v1
-#kind: Service
-#metadata:
-#  name: usage-query
-#spec:
-#  selector:
-#    app: usage-query
-#  ports:
-#    - port: 8080
-#      targetPort: 8080
-#  type: LoadBalancer
-#---
+apiVersion: v1
+kind: Service
+metadata:
+  name: usage-query
+spec:
+  selector:
+    app: usage-query
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: LoadBalancer
+---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: usage-query-hpa
   namespace: usageq-ns
-  labels: # 추가
+  labels:
     app: usage-query
 spec:
   scaleTargetRef:
