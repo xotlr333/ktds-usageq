@@ -41,16 +41,17 @@ public class UsageQueueConsumer {
                 if (!productRepository.existsByProdId(prodId)) {
                     log.warn(" No product <<존재하지 않는 상품번호 입니다.>> - Invalid product requested - userId: {}, prodId: {}",
                             request.getUserId(), prodId);
+                } else {
+
+                    UsageType usageType = UsageType.fromCode(request.getType());
+                    usage.updateUsage(usageType, request.getAmount());
+
+                    Usage savedUsage = usageRepository.save(usage);
+                    updateCache(savedUsage);
+
+                    log.info("Successfully processed usage update - userId: {}, type: {}, createdAt: {}, updatedAt: {}",
+                            savedUsage.getUserId(), usageType, savedUsage.getCreatedAt(), savedUsage.getUpdatedAt());
                 }
-
-                UsageType usageType = UsageType.fromCode(request.getType());
-                usage.updateUsage(usageType, request.getAmount());
-
-                Usage savedUsage = usageRepository.save(usage);
-                updateCache(savedUsage);
-
-                log.info("Successfully processed usage update - userId: {}, type: {}, createdAt: {}, updatedAt: {}",
-                        savedUsage.getUserId(), usageType, savedUsage.getCreatedAt(), savedUsage.getUpdatedAt());
 
             }else{
                 log.warn(" No user <<유효하지 않은 회선번호 입니다.>> - Invalid user requested - userId: {}", request.getUserId());
