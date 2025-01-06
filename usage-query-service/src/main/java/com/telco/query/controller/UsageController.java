@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "사용량 조회 API", description = "사용자의 사용량 정보를 조회하는 API")
 @RestController
 @RequestMapping("/api/usage")
+@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class UsageController {
     private final IUsageQueryService usageQueryService;
