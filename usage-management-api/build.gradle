@@ -27,5 +27,5 @@ dependencies {
 }
 
 bootJar {
-    archiveFileName = "usage-management-worker.jar"
+    archiveFileName = "usage-management-api.jar"
 }
