@@ -2,4 +2,7 @@ rootProject.name = 'usageq'
 
 include 'common'
 include 'usage-query-service'
-include 'usage-management-service'
+include 'usage-management-api'      // 새로 추가
+include 'usage-management-worker'   // 새로 추가
+include 'usage-management-api'
+

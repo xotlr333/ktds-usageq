@@ -1,0 +1,33 @@
+dependencies {
+    // Project Dependencies
+    implementation project(':common')
+
+    // Spring Boot (web 의존성 제거)
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+
+    // Database
+    implementation 'org.postgresql:postgresql'
+
+    // RabbitMQ
+    implementation 'org.springframework.amqp:spring-rabbit'
+
+    // Retry
+    implementation 'org.springframework.retry:spring-retry'
+    implementation 'org.springframework:spring-aspects'
+
+    // Jackson
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // Logging
+    implementation 'org.slf4j:slf4j-api:2.0.16'
+    implementation 'ch.qos.logback:logback-classic:1.4.14'
+}
+
+bootJar {
+    archiveFileName = "usage-management-worker.jar"
+    mainClass = 'com.telco.management.worker.UsageManagementApplication'
+}

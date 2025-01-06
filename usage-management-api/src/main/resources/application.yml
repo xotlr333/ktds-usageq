@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: usage-management-api
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+server:
+  servlet:
+    context-path: /    # 컨텍스트 패스 설정
+  port: 8081
+
+logging:
+  level:
+    com.telco.management.api: DEBUG
+    org.springframework.web: INFO
