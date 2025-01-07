@@ -10,8 +10,14 @@ import java.time.Duration;
 @Configuration
 public class MetricsConfig {
 
+    private final MeterRegistry registry;
+
+    public MetricsConfig(MeterRegistry registry) {
+        this.registry = registry;
+    }
+
     @Bean
-    public Timer usageUpdateTimer(MeterRegistry registry) {
+    public Timer usageUpdateTimer() {
         return Timer.builder("usage_update_time")
                 .description("Time taken to update usage")
                 .publishPercentiles(0.5, 0.95, 0.99)
@@ -25,28 +31,7 @@ public class MetricsConfig {
     }
 
     @Bean
-    public Counter usageUpdateSuccessCounter(MeterRegistry registry) {
-        return Counter.builder("usage_updates_success_total")
-                .description("Total number of successful usage updates")
-                .register(registry);
-    }
-
-    @Bean
-    public Counter usageUpdateFailureCounter(MeterRegistry registry) {
-        return Counter.builder("usage_updates_failure_total")
-                .description("Total number of failed usage updates")
-                .register(registry);
-    }
-
-    @Bean
-    public Counter deadLetterQueueCounter(MeterRegistry registry) {
-        return Counter.builder("dead_letter_queue_total")
-                .description("Total number of messages sent to dead letter queue")
-                .register(registry);
-    }
-
-    @Bean
-    public Timer cacheUpdateTimer(MeterRegistry registry) {
+    public Timer cacheUpdateTimer() {
         return Timer.builder("cache_update_time")
                 .description("Time taken to update cache")
                 .publishPercentiles(0.5, 0.95, 0.99)
@@ -56,6 +41,34 @@ public class MetricsConfig {
                         Duration.ofMillis(100),
                         Duration.ofMillis(200)
                 )
+                .register(registry);
+    }
+
+    @Bean
+    public Counter usageUpdateSuccessCounter() {
+        return Counter.builder("usage_updates_success_total")
+                .description("Total number of successful usage updates")
+                .register(registry);
+    }
+
+    @Bean
+    public Counter usageUpdateFailureCounter() {
+        return Counter.builder("usage_updates_failure_total")
+                .description("Total number of failed usage updates")
+                .register(registry);
+    }
+
+    @Bean
+    public Counter invalidUserCounter() {
+        return Counter.builder("invalid_user_total")
+                .description("Total number of invalid user requests")
+                .register(registry);
+    }
+
+    @Bean
+    public Counter invalidProductCounter() {
+        return Counter.builder("invalid_product_total")
+                .description("Total number of invalid product requests")
                 .register(registry);
     }
 }
