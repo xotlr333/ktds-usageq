@@ -6,10 +6,6 @@ metadata:
   namespace: usageq-ns
   labels:
     app: usage-management-api
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/path: "/actuator/prometheus"
-    prometheus.io/port: "8080"  # **server.port와 반드시 동일해야 함**
 spec:
   replicas: 1 # Pod 복제본 수
   selector:
@@ -19,6 +15,10 @@ spec:
     metadata:
       labels:
         app: usage-management-api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8080"  # **server.port와 반드시 동일해야 함**
     spec:
       containers:
         - name: usage-management-api
