@@ -42,9 +42,11 @@ public class UsageQueryServiceImpl implements IUsageQueryService {
             // 존재하지 않는 회선번호인 경우
             if (usage.isEmpty()) {
                 log.warn("<<유효하지 않는 회선입니다.>> - Invalid user requested - userId: {}", userId);
-                return ResponseEntity.ok(ApiResponse.success(UsageDTO.builder()
-                        .userId(userId)
-                        .build()));
+                return ResponseEntity
+                        .status(201)
+                        .body(ApiResponse.created(UsageDTO.builder()  // success 대신 created 사용
+                                .userId(userId)
+                                .build()));
             }
 
             try {
