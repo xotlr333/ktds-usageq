@@ -41,5 +41,5 @@ management:
     distribution:
       percentiles-histogram:
         http.server.requests: true
-      sla:
-        http.server.requests: 100ms,500ms,1s
+      slo:
+        http.server.requests: 50ms,100ms,200ms
