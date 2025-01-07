@@ -31,8 +31,7 @@ public class UsageQueueConsumer {
     private final Timer cacheUpdateTimer;
     private final Counter usageUpdateSuccessCounter;
     private final Counter usageUpdateFailureCounter;
-    private final Counter invalidUserCounter;
-    private final Counter invalidProductCounter;
+    private final Counter usageInvalidErrorCounter ;
 
     @RabbitListener(queues = "usage.queue",
             containerFactory = "rabbitListenerContainerFactory",
@@ -48,7 +47,7 @@ public class UsageQueueConsumer {
             if (usage != null) {
                 String prodId = usage.getProdId();
                 if (!productRepository.existsByProdId(prodId)) {
-                    invalidProductCounter.increment();
+                    usageInvalidErrorCounter.increment();
                     log.warn(" No product <<존재하지 않는 상품번호 입니다.>> - Invalid product requested - userId: {}, prodId: {}",
                             request.getUserId(), prodId);
                 } else {
@@ -70,7 +69,7 @@ public class UsageQueueConsumer {
                             savedUsage.getUserId(), usageType, savedUsage.getCreatedAt(), savedUsage.getUpdatedAt());
                 }
             } else {
-                invalidUserCounter.increment();
+                usageInvalidErrorCounter.increment();
                 log.warn(" No user <<유효하지 않은 회선번호 입니다.>> - Invalid user requested - userId: {}", request.getUserId());
             }
 

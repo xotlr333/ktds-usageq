@@ -37,12 +37,6 @@ public class MetricsConfig {
                 .register(registry);
     }
 
-    @Bean
-    public Counter usageUpdateErrorCounter(MeterRegistry registry) {
-        return Counter.builder("usage_update_errors_total")
-                .description("Total number of usage update errors")
-                .register(registry);
-    }
 
     @Bean
     public Counter queuePublishCounter(MeterRegistry registry) {

@@ -29,14 +29,21 @@ public class CommonMetricsConfig {
     }
 
     @Bean
-    public Counter cacheHitsCounter(MeterRegistry registry) {
+    public Counter usageInvalidErrorCounter(MeterRegistry registry) {
+        return Counter.builder("usage_update_errors_total")
+                .description("Total number of usage update errors")
+                .register(registry);
+    }
+
+    @Bean
+    public Counter cacheHitCounter(MeterRegistry registry) {
         return Counter.builder("cache_hits_total")
                 .description("Total number of cache hits")
                 .register(registry);
     }
 
     @Bean
-    public Counter cacheMissesCounter(MeterRegistry registry) {
+    public Counter cacheMissCounter(MeterRegistry registry) {
         return Counter.builder("cache_misses_total")
                 .description("Total number of cache misses")
                 .register(registry);

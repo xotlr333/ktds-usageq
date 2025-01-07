@@ -27,8 +27,6 @@ public class UsageQueryServiceImpl implements IUsageQueryService {
     private final Counter usageRequestCounter;
     private final Counter cacheHitCounter;
     private final Counter cacheMissCounter;
-    private final Timer cacheOperationTimer;
-    private final Timer databaseOperationTimer;
 
     @Override
     public ResponseEntity<ApiResponse<UsageDTO>> getUserUsage(String userId) {
@@ -36,9 +34,7 @@ public class UsageQueryServiceImpl implements IUsageQueryService {
         try {
             usageRequestCounter.increment();
             // 1. 캐시에서 조회 시도
-            Timer.Sample cacheTimer = Timer.start();
             Optional<UsageDTO> cachedUsage = cacheService.get(formatCacheKey(userId));
-            cacheTimer.stop(cacheOperationTimer);
 
             if (cachedUsage.isPresent()) {
                 cacheHitCounter.increment();
@@ -54,9 +50,7 @@ public class UsageQueryServiceImpl implements IUsageQueryService {
             applyConfiguredDelay();
 
             // 2. Cache Miss인 경우 DB에서 조회
-            Timer.Sample dbTimer = Timer.start();
             Optional<UsageDTO> usage = usageDBService.findByUserId(userId);
-            dbTimer.stop(databaseOperationTimer);
 
             // 존재하지 않는 회선번호인 경우
             if (usage.isEmpty()) {
@@ -68,7 +62,6 @@ public class UsageQueryServiceImpl implements IUsageQueryService {
                                 .build()));
             }
 
-            Timer.Sample cacheUpdateTimer = Timer.start();
             try {
                 // 3. 조회된 데이터를 캐시에 저장
                 cacheService.set(formatCacheKey(userId), usage.get());
@@ -76,7 +69,6 @@ public class UsageQueryServiceImpl implements IUsageQueryService {
             } catch (Exception e) {
                 log.error("Failed to update cache - userId: {}, error: {}", userId, e.getMessage());
             }
-            cacheUpdateTimer.stop(cacheOperationTimer);
             totalTimer.stop(usageQueryTimer);
 
             return ResponseEntity.ok(ApiResponse.success(usage.get()));

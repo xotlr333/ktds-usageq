@@ -24,7 +24,7 @@ public class UsageManagementService {
     private final ProductRepository productRepository;
     private final Timer usageUpdateTimer;
     private final Counter usageUpdateRequestCounter;
-    private final Counter usageUpdateErrorCounter;
+    private final Counter usageInvalidErrorCounter;
     private final Counter queuePublishCounter;
     private final Counter queuePublishErrorCounter;
 
@@ -36,7 +36,7 @@ public class UsageManagementService {
 
             // 기본 검증
             if (request.getUserId() == null || request.getUserId().trim().isEmpty()) {
-                usageUpdateErrorCounter.increment();
+                usageInvalidErrorCounter.increment();
                 throw new BizException("사용자 ID는 필수입니다", 400);
             }
 
@@ -48,7 +48,7 @@ public class UsageManagementService {
             if (usage != null) {
                 // 상품 존재 여부만 체크
                 if (!productRepository.existsByProdId(usage.getProdId())) {
-                    usageUpdateErrorCounter.increment();
+                    usageInvalidErrorCounter.increment();
                     log.warn("<<존재하지 않는 상품번호 입니다.>> - Invalid product requested - userId: {}, prodId: {}",
                             request.getUserId(), usage.getProdId());
                 } else {
@@ -58,12 +58,11 @@ public class UsageManagementService {
 
                 log.info("Successfully sent usage update message to queue");
             } else {
-                usageUpdateErrorCounter.increment();
+                usageInvalidErrorCounter.increment();
                 log.warn("<<유효하지 않은 회선번호 입니다.>> - Invalid user requested - userId: {}", request.getUserId());
             }
         } catch (AmqpException e) {
             queuePublishErrorCounter.increment();
-            usageUpdateErrorCounter.increment();
             log.error("Failed to send message to queue", e);
             throw e;
         } finally {
