@@ -6,7 +6,8 @@ metadata:
   labels:
     app: usage-management-api
 spec:
-  replicas: 2  # 최소 2개의 Pod로 시작
+  minReadySeconds: 45  # Pod가 Ready 상태로 간주되기 전 대기 시간
+  replicas: 1          # replica를 1로 줄임
   progressDeadlineSeconds: 600  # 배포 데드라인 증가
   strategy:
     type: RollingUpdate
@@ -45,23 +46,23 @@ spec:
               port: 8080
             failureThreshold: 60
             periodSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /actuator/health
-              port: 8080
-            initialDelaySeconds: 60  # 더 길게 설정
-            periodSeconds: 20
-            timeoutSeconds: 5
-            failureThreshold: 6
           readinessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 150  # 더 길게 설정
+            initialDelaySeconds: 60  # 더 길게 설정
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3        # 30초 (3 * 10초) 연속 실패 시 트래픽 차단
             successThreshold: 1        # 1회 성공하면 즉시 트래픽 수신
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 90  # 더 길게 설정
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
           env:
             - name: TZ
               value: "Asia/Seoul"
