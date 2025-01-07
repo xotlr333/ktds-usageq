@@ -3,6 +3,7 @@ package com.telco.management.api.config;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -10,6 +11,11 @@ import java.time.Duration;
 
 @Configuration
 public class MetricsConfig {
+
+    @Bean
+    public MeterRegistry meterRegistry() {
+        return new SimpleMeterRegistry();
+    }
 
     @Bean
     public Timer usageUpdateTimer(MeterRegistry registry) {
