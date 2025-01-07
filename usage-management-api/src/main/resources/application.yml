@@ -28,3 +28,18 @@ logging:
   level:
     com.telco.management.api: DEBUG
     org.springframework.web: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      app: usage-management-api
+      instance: ${HOSTNAME:localhost}:${server.port:8080}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 100ms,500ms,1s
