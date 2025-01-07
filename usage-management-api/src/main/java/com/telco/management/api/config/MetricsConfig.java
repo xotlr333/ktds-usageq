@@ -1,6 +1,5 @@
 package com.telco.management.api.config;
 
-import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import org.springframework.context.annotation.Bean;
@@ -13,21 +12,6 @@ import java.time.Duration;
 @Configuration
 @Import(CommonMetricsConfig.class)
 public class MetricsConfig {
-    // API 서비스 전용 메트릭스만 추가
-    @Bean
-    public Counter queuePublishCounter(MeterRegistry registry) {
-        return Counter.builder("queue_publish_total")
-                .description("Total number of messages published to queue")
-                .register(registry);
-    }
-
-    @Bean
-    public Counter queuePublishErrorCounter(MeterRegistry registry) {
-        return Counter.builder("queue_publish_errors_total")
-                .description("Total number of queue publish errors")
-                .register(registry);
-    }
-
     @Bean
     public Timer apiResponseTimer(MeterRegistry registry) {
         return Timer.builder("api_response_time")

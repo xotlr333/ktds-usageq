@@ -1,6 +1,5 @@
 package com.telco.management.worker.config;
 
-import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import org.springframework.context.annotation.Bean;
@@ -13,28 +12,6 @@ import java.time.Duration;
 @Configuration
 @Import(CommonMetricsConfig.class)
 public class MetricsConfig {
-    // Worker 서비스 전용 메트릭스만 추가
-    @Bean
-    public Counter messageProcessCounter(MeterRegistry registry) {
-        return Counter.builder("message_process_total")
-                .description("Total number of processed messages")
-                .register(registry);
-    }
-
-    @Bean
-    public Counter invalidUserCounter(MeterRegistry registry) {
-        return Counter.builder("invalid_user_total")
-                .description("Total number of invalid user requests")
-                .register(registry);
-    }
-
-    @Bean
-    public Counter invalidProductCounter(MeterRegistry registry) {
-        return Counter.builder("invalid_product_total")
-                .description("Total number of invalid product requests")
-                .register(registry);
-    }
-
     @Bean
     public Timer messageProcessingTimer(MeterRegistry registry) {
         return Timer.builder("message_processing_time")
