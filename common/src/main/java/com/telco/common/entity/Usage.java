@@ -1,9 +1,6 @@
 package com.telco.common.entity;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -19,9 +16,9 @@ public class Usage {
     @Column(name = "prod_id", nullable = false)    // offer_id -> prod_id로 변경
     private String prodId;
 
-    @ManyToOne(fetch = FetchType.LAZY)    // 새로 추가: Product와의 관계 설정
-    @JoinColumn(name = "prod_id", insertable = false, updatable = false)
-    private Product product;
+//    @ManyToOne(fetch = FetchType.LAZY)    // 새로 추가: Product와의 관계 설정
+//    @JoinColumn(name = "prod_id", insertable = false, updatable = false)
+//    private Product product;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -94,6 +91,10 @@ public class Usage {
             }
         }
     }
+
+    @Setter // 추가
+    @Transient // DB 컬럼과 매핑되지 않는 임시 필드
+    private Product product;
 
     private void updateModifiedTime() {
         this.updatedAt = LocalDateTime.now();

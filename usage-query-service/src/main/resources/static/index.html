@@ -153,6 +153,14 @@
             transform: translateY(30px);
         }
 
+        .prod-nm {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 12px;
@@ -238,7 +246,7 @@
         <input type="text" id="userId" placeholder="사용자 ID를 입력하세요" autocomplete="off">
         <button onclick="fetchUsageData()">조회</button>
     </div>
-
+    <div id="prodNm" class="prod-nm"></div>
     <div id="errorMessage" class="error-message"></div>
 
     <div class="charts">
@@ -479,6 +487,15 @@
                 updateUsageDetails('dataDetails', null);
                 } else if (result.status === 200 && result.data) {
                 errorMessage.style.display = 'none';
+
+                // prodNm 표시
+                    if (result.data.prodNm) {
+                        const prodNmElement = document.getElementById('prodNm');
+                        prodNmElement.textContent = `요금제: ${result.data.prodNm}`;
+                        prodNmElement.style.display = 'block';
+                    } else {
+                        document.getElementById('prodNm').style.display = 'none';
+                    }
 
                 // 각 사용량 업데이트
                 updateUsageDetails('voiceDetails', result.data.voiceUsage, 'voice');

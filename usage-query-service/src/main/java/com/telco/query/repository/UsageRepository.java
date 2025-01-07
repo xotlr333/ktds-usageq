@@ -22,11 +22,8 @@ import static org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE;
 @Repository
 public interface UsageRepository extends JpaRepository<Usage, Long> {
     // 1. 인덱스 활용을 위한 쿼리 힌트 추가
-    @QueryHints(value = {
-            @QueryHint(name = HINT_FETCH_SIZE, value = "50"),
-            @QueryHint(name = HINT_COMMENT, value = "Use Index")
-    })
-    Optional<Usage> findByUserId(String userId);
+    @Query("SELECT u FROM Usage u WHERE u.userId = :userId")
+    Optional<Usage> findByUserId(@Param("userId") String userId);
 
     // 2. N+1 문제 해결을 위한 페치 조인
     @Query("SELECT DISTINCT u FROM Usage u " +
