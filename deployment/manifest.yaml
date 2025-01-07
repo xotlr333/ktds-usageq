@@ -101,6 +101,10 @@ spec:
     metadata:
       labels:
         app: usage-management-worker
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8080"  # **반드시 application.yml의 server.port와 동일해야 합니다**
     spec:
       containers:
         - name: usage-management-worker
