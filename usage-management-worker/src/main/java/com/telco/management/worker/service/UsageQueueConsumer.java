@@ -55,6 +55,10 @@ public class UsageQueueConsumer {
                     UsageType usageType = UsageType.fromCode(request.getType());
                     usage.updateUsage(usageType, request.getAmount());
 
+                    // Product 정보 조회 및 설정 추가
+                    productRepository.findByProdId(usage.getProdId())
+                            .ifPresent(usage::setProduct);
+
                     Usage savedUsage = usageRepository.save(usage);
 
                     Timer.Sample cacheSample = Timer.start();

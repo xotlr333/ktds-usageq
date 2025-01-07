@@ -13,6 +13,7 @@ public class UsageMapper {
 
         return UsageDTO.builder()
                 .userId(usage.getUserId())
+                .prodNm(usage.getProduct() != null ? usage.getProduct().getProdNm() : null) // 추가
                 .voiceUsage(createUsageDetail(usage.getVoiceUsage(), "초"))
                 .videoUsage(createUsageDetail(usage.getVideoUsage(), "초"))
                 .messageUsage(createUsageDetail(usage.getMessageUsage(), "건"))

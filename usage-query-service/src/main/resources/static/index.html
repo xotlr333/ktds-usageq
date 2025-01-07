@@ -478,23 +478,34 @@
             if (response.status === 201) {
                 // 201 상태 코드일 때 alert 표시
                 alert("유효하지 않은 회선번호입니다.");
+
+                // 유효하지 않은 회선번호일 경우 자동 갱신 중지
+                clearInterval(autoRefreshInterval);
                 errorMessage.style.display = 'none';
+
                 // 차트와 상세 정보 초기화
                 updateUsageDetails('voiceDetails', null);
                 updateUsageDetails('videoDetails', null);
                 updateUsageDetails('messageDetails', null);
                 updateUsageDetails('dataDetails', null);
-                } else if (result.status === 200 && result.data) {
+
+                // 요금제명도 초기화
+                document.getElementById('prodNm').style.display = 'none';
+                document.getElementById('prodNm').textContent = '';
+            } else if (result.status === 200 && result.data) {
                 errorMessage.style.display = 'none';
+                // 성공적으로 데이터를 받아왔을 때만 자동 갱신 시작
+                startAutoRefresh();
 
                 // prodNm 표시
-                    if (result.data.prodNm) {
-                        const prodNmElement = document.getElementById('prodNm');
-                        prodNmElement.textContent = `요금제: ${result.data.prodNm}`;
-                        prodNmElement.style.display = 'block';
-                    } else {
-                        document.getElementById('prodNm').style.display = 'none';
-                    }
+                const prodNmElement = document.getElementById('prodNm');
+                if (result.data.prodNm) {
+                    prodNmElement.textContent = `요금제: ${result.data.prodNm}`;
+                    prodNmElement.style.display = 'block';
+                } else {
+                    prodNmElement.style.display = 'none';
+                    prodNmElement.textContent = '';
+                }
 
                 // 각 사용량 업데이트
                 updateUsageDetails('voiceDetails', result.data.voiceUsage, 'voice');
@@ -511,6 +522,8 @@
             console.error('API 호출 에러:', err);
             errorMessage.textContent = '서버 연결에 실패했습니다.';
             errorMessage.style.display = 'block';
+            // 에러 발생 시 자동 갱신 중지
+            clearInterval(autoRefreshInterval);
         } finally {
             // 버튼 상태 복원
             button.disabled = false;
@@ -525,9 +538,28 @@
         }
     });
 
+    // 입력 필드가 변경될 때 자동 갱신 중지
+    document.getElementById('userId').addEventListener('input', function() {
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+        }
+    });
+
     // 초기 타임스탬프 설정
     document.getElementById('timestamp').textContent =
         `최근업데이트: ${new Date().toLocaleString()}`;
+
+    let autoRefreshInterval;
+
+    // 자동 갱신 시작 함수
+    function startAutoRefresh() {
+        // 이미 실행 중인 타이머가 있다면 중지
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+        }
+        // 3초마다 데이터 갱신
+        autoRefreshInterval = setInterval(fetchUsageData, 3000);
+    }
 </script>
 </body>
 </html>
