@@ -6,7 +6,7 @@ metadata:
   labels:
     app: usage-management-api
 spec:
-  minReadySeconds: 45  # Pod가 Ready 상태로 간주되기 전 대기 시간
+  minReadySeconds: 60  # Pod가 Ready 상태로 간주되기 전 대기 시간
   replicas: 1          # replica를 1로 줄임
   progressDeadlineSeconds: 600  # 배포 데드라인 증가
   strategy:
@@ -26,7 +26,7 @@ spec:
         prometheus.io/path: "/actuator/prometheus"
         prometheus.io/port: "8080"  # **server.port와 반드시 동일해야 함**
     spec:
-      terminationGracePeriodSeconds: 60  # Pod 종료 대기 시간
+      terminationGracePeriodSeconds: 90  # Pod 종료 대기 시간
       containers:
         - name: usage-management-api
           image: usageqcr.azurecr.io/telecom/usage-management-api:latest
@@ -36,10 +36,10 @@ spec:
           resources:
             requests:
               cpu: "200m"
-              memory: "384Mi"
+              memory: "512Mi"
             limits:
               cpu: "500m"
-              memory: "768Mi"
+              memory: "1Gi"
           startupProbe:  # 시작 시 probe 추가
             httpGet:
               path: /actuator/health
@@ -50,19 +50,19 @@ spec:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 60  # 더 길게 설정
+            initialDelaySeconds: 90  # 더 길게 설정
             periodSeconds: 10
             timeoutSeconds: 5
-            failureThreshold: 3        # 30초 (3 * 10초) 연속 실패 시 트래픽 차단
+            failureThreshold: 6       # 30초 (3 * 10초) 연속 실패 시 트래픽 차단
             successThreshold: 1        # 1회 성공하면 즉시 트래픽 수신
           livenessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 90  # 더 길게 설정
+            initialDelaySeconds: 120  # 더 길게 설정
             periodSeconds: 10
             timeoutSeconds: 5
-            failureThreshold: 3
+            failureThreshold: 6
           env:
             - name: TZ
               value: "Asia/Seoul"

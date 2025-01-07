@@ -255,28 +255,36 @@ jobs:
           # Function to wait for deployment
           wait_for_deployment() {
             local deploy_name=$1
-            local max_attempts=10
+            local max_attempts=20  # 10에서 20으로 증가
             local attempt=1
-          
+            
             while [ $attempt -le $max_attempts ]; do
-              echo "Checking $deploy_name deployment (attempt $attempt/$max_attempts)..."
-          
-              if kubectl get deployment $deploy_name -n ${{ env.NAMESPACE }}; then
-                kubectl rollout status deployment/$deploy_name -n ${{ env.NAMESPACE }} --timeout=60s
-                return 0
-              fi
-          
-              attempt=$((attempt + 1))
-              sleep 10
+            echo "Checking $deploy_name deployment (attempt $attempt/$max_attempts)..."
+            
+            # 배포 상태 확인 타임아웃 증가
+            if kubectl rollout status deployment/$deploy_name -n ${{ env.NAMESPACE }} --timeout=120s; then
+            return 0
+            fi
+            
+            # 실패 시 Pod 로그 출력
+            echo "Deployment status:"
+            kubectl get deployment $deploy_name -n ${{ env.NAMESPACE }} -o wide
+            echo "Pod status:"
+            kubectl get pods -n ${{ env.NAMESPACE }} -l app=$deploy_name -o wide
+            echo "Pod logs:"
+            kubectl logs -n ${{ env.NAMESPACE }} -l app=$deploy_name --tail=50
+            
+            attempt=$((attempt + 1))
+            sleep 20  # 대기 시간 증가
             done
-          
-            echo "Error: $deploy_name deployment not found after $max_attempts attempts"
+            
             return 1
           }
-          
-          wait_for_deployment usage-management-api
-          wait_for_deployment usage-management-worker
-          wait_for_deployment usage-query
+        
+          # 각 서비스 배포 검증
+          wait_for_deployment usage-management-api || exit 1
+          wait_for_deployment usage-management-worker || exit 1
+          wait_for_deployment usage-query || exit 1
 
       # 서비스 엔드포인트 출력
       - name: Print service endpoints
