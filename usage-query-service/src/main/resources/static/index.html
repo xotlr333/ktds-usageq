@@ -336,11 +336,10 @@
     function formatDataUsage(bytes) {
         if (bytes === 0) return '0 GB';
 
-        const k = 1024;
-        const sizes = ['bytes', 'KB', 'MB', 'GB', 'TB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        // 수정: 패킷 단위를 GB로 변환하는 계산식 적용하고 소수점 아래 두 자리까지 표시
+        const gigabytes = (bytes / (1024 * 2048)).toFixed(2);
 
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        return gigabytes + ' GB';
     }
 
     function updateUsageDetails(containerId, data, type) {
