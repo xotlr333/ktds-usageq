@@ -7,7 +7,12 @@ metadata:
   labels:
     app: usage-management-api
 spec:
-  replicas: 1 # Pod 복제본 수
+  replicas: 2 # Pod 복제본 수
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1        # 최대 1개의 추가 Pod 허용
+      maxUnavailable: 0  # Pod 무중단 보장
   selector:
     matchLabels:
       app: usage-management-api
@@ -33,6 +38,28 @@ spec:
             limits:
               cpu: "500m"
               memory: "768Mi"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+            livenessProbe:
+              httpGet:
+                path: /actuator/health
+                port: 8080
+              initialDelaySeconds: 60
+              periodSeconds: 20
+              timeoutSeconds: 5
+              failureThreshold: 3
+            startupProbe:
+              httpGet:
+                path: /actuator/health
+                port: 8080
+              failureThreshold: 30
+              periodSeconds: 10
           env:
             - name: TZ
               value: "Asia/Seoul"
@@ -43,6 +70,10 @@ spec:
                 name: app-config
             - secretRef:
                 name: app-secret
+          lifecycle:
+            preStop:
+              exec:
+                command: [ "sh", "-c", "sleep 10" ]  # Grace Period 추가
 ---
 # 로드밸런서 생성
 apiVersion: v1
