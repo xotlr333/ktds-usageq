@@ -250,7 +250,7 @@ spec:
             - name: TZ
               value: "Asia/Seoul"
             - name: JAVA_OPTS
-              value: "-Xms256m -Xmx512m -XX:+UseG1GC"
+              value: "-Xms256m -Xmx512m -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+HeapDumpOnOutOfMemoryError"
           envFrom:
             - configMapRef:
                 name: app-config

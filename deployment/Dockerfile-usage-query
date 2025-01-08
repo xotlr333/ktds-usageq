@@ -2,5 +2,6 @@ FROM openjdk:17-slim
 WORKDIR /app
 COPY query-service/usage-query-service.jar app.jar
 #ENTRYPOINT ["java","-jar","app.jar"]
-ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC"
+#ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC"
+ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+HeapDumpOnOutOfMemoryError"
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
