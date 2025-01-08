@@ -309,9 +309,15 @@
     }
 
     function formatTime(seconds) {
-        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
         const remainingSeconds = seconds % 60;
-        return `${minutes}분 ${remainingSeconds}초`;
+
+        if (hours > 0) {
+            return `${hours}시간 ${minutes}분 ${remainingSeconds}초`;
+        } else {
+            return `${minutes}분 ${remainingSeconds}초`;
+        }
     }
 
     function calculateProgress(total, max) {
