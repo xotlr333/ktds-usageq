@@ -1,3 +1,4 @@
+# Usage Management Api
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -6,14 +7,7 @@ metadata:
   labels:
     app: usage-management-api
 spec:
-  minReadySeconds: 60  # Pod가 Ready 상태로 간주되기 전 대기 시간
-  replicas: 1          # replica를 1로 줄임
-  progressDeadlineSeconds: 600  # 배포 데드라인 증가
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1        # 최대 1개의 추가 Pod 허용
-      maxUnavailable: 0  # Pod 무중단 보장
+  replicas: 1 # Pod 복제본 수
   selector:
     matchLabels:
       app: usage-management-api
@@ -26,57 +20,29 @@ spec:
         prometheus.io/path: "/actuator/prometheus"
         prometheus.io/port: "8080"  # **server.port와 반드시 동일해야 함**
     spec:
-      terminationGracePeriodSeconds: 90  # Pod 종료 대기 시간
       containers:
         - name: usage-management-api
+          # 컨테이너 이미지 지정
+          #          image: ${REGISTRY}/telecom/usage-management:${IMAGE_TAG}
           image: usageqcr.azurecr.io/telecom/usage-management-api:latest
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 8080
-          resources:
+          imagePullPolicy: Always # 항상 최신 이미지 사용
+          resources: # 리소스 제한 설정
             requests:
               cpu: "200m"
-              memory: "512Mi"
+              memory: "384Mi"
             limits:
               cpu: "500m"
-              memory: "1Gi"
-          startupProbe:  # 시작 시 probe 추가
-            httpGet:
-              path: /actuator/health
-              port: 8080
-            failureThreshold: 60
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /actuator/health
-              port: 8080
-            initialDelaySeconds: 90  # 더 길게 설정
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 6       # 30초 (3 * 10초) 연속 실패 시 트래픽 차단
-            successThreshold: 1        # 1회 성공하면 즉시 트래픽 수신
-          livenessProbe:
-            httpGet:
-              path: /actuator/health
-              port: 8080
-            initialDelaySeconds: 120  # 더 길게 설정
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 6
+              memory: "768Mi"
           env:
             - name: TZ
               value: "Asia/Seoul"
             - name: JAVA_OPTS
               value: "-Xms256m -Xmx512m -XX:+UseG1GC"
-          envFrom:
+          envFrom: # 환경변수 참조
             - configMapRef:
                 name: app-config
             - secretRef:
                 name: app-secret
-          lifecycle:
-            preStop:
-              exec:
-                command: ["sh", "-c", "sleep 10"]
 ---
 # 로드밸런서 생성
 apiVersion: v1
