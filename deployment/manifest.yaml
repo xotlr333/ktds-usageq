@@ -28,10 +28,10 @@ spec:
           imagePullPolicy: Always # 항상 최신 이미지 사용
           resources: # 리소스 제한 설정
             requests:
-              cpu: "200m"
+              cpu: "500m"
               memory: "512Mi"
             limits:
-              cpu: "500m"
+              cpu: "1000m"
               memory: "1Gi"
           env:
             - name: TZ
@@ -68,6 +68,19 @@ metadata:
   labels:
     app: usage-management-api
 spec:
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300  # 5분
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+    scaleUp:
+      stabilizationWindowSeconds: 0    # 즉시 스케일 업
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
   scaleTargetRef: # 확장 대상 지정
     apiVersion: apps/v1
     kind: Deployment
@@ -118,10 +131,10 @@ spec:
           imagePullPolicy: Always # 항상 최신 이미지 사용
           resources: # 리소스 제한 설정
             requests:
-              cpu: "200m"
+              cpu: "500m"
               memory: "512Mi"
             limits:
-              cpu: "500m"
+              cpu: "1000m"
               memory: "1Gi"
           env:
             - name: TZ
@@ -158,6 +171,19 @@ metadata:
   labels:
     app: usage-management-worker
 spec:
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300  # 5분
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+    scaleUp:
+      stabilizationWindowSeconds: 0    # 즉시 스케일 업
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
   scaleTargetRef: # 확장 대상 지정
     apiVersion: apps/v1
     kind: Deployment
@@ -207,10 +233,10 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: "200m"
+              cpu: "500m"
               memory: "512Mi"
             limits:
-              cpu: "500m"
+              cpu: "1000m"
               memory: "1Gi"
           env:
             - name: TZ
@@ -245,6 +271,19 @@ metadata:
   labels:
     app: usage-query
 spec:
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300  # 5분
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+    scaleUp:
+      stabilizationWindowSeconds: 0    # 즉시 스케일 업
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
