@@ -199,29 +199,29 @@ jobs:
             --dry-run=client -o yaml | kubectl apply -f -
 
       # 기존 리소스 정리
-#      - name: Clean up existing resources
-#        run: |
-#          echo "Cleaning up existing resources..."
-#          # deployment 삭제
-#          kubectl delete deployment,hpa -n ${{ env.NAMESPACE }} -l app=usage-query --ignore-not-found
-#          kubectl delete deployment,hpa -n ${{ env.NAMESPACE }} -l app=usage-management-api --ignore-not-found
-#          kubectl delete deployment,hpa -n ${{ env.NAMESPACE }} -l app=usage-management-worker --ignore-not-found
-#
-#          # deployment 완전히 종료될 때까지 대기
-#          echo "Waiting for pods to be cleaned up..."
-#          kubectl wait --for=delete deployment,hpa -l app=usage-query -n ${{ env.NAMESPACE }} --timeout=300s || true
-#          kubectl wait --for=delete deployment,hpa -l app=usage-management-api -n ${{ env.NAMESPACE }} --timeout=300s || true
-#          kubectl wait --for=delete deployment,hpa -l app=usage-management-worker -n ${{ env.NAMESPACE }} --timeout=300s || true
-#
-#          # 삭제 확인
-#          echo "Verifying cleanup completion..."
-#          REMAINING_DEPLOYMENTS=$(kubectl get deployment -n ${{ env.NAMESPACE }} -l 'app in (usage-query, usage-management-api, usage-management-worker)' 3>/dev/null)
-#          if [ -z "$REMAINING_DEPLOYMENTS" ]; then
-#          echo "All deployments successfully removed"
-#          else
-#          echo "Warning: Some deployments still exist:"
-#          echo "$REMAINING_DEPLOYMENTS"
-#          fi
+      - name: Clean up existing resources
+        run: |
+          echo "Cleaning up existing resources..."
+          # deployment 삭제
+          kubectl delete deployment,hpa -n ${{ env.NAMESPACE }} -l app=usage-query --ignore-not-found
+          kubectl delete deployment,hpa -n ${{ env.NAMESPACE }} -l app=usage-management-api --ignore-not-found
+          kubectl delete deployment,hpa -n ${{ env.NAMESPACE }} -l app=usage-management-worker --ignore-not-found
+          
+          # deployment 완전히 종료될 때까지 대기
+          echo "Waiting for pods to be cleaned up..."
+          kubectl wait --for=delete deployment,hpa -l app=usage-query -n ${{ env.NAMESPACE }} --timeout=300s || true
+          kubectl wait --for=delete deployment,hpa -l app=usage-management-api -n ${{ env.NAMESPACE }} --timeout=300s || true
+          kubectl wait --for=delete deployment,hpa -l app=usage-management-worker -n ${{ env.NAMESPACE }} --timeout=300s || true
+          
+          # 삭제 확인
+          echo "Verifying cleanup completion..."
+          REMAINING_DEPLOYMENTS=$(kubectl get deployment -n ${{ env.NAMESPACE }} -l 'app in (usage-query, usage-management-api, usage-management-worker)' 3>/dev/null)
+          if [ -z "$REMAINING_DEPLOYMENTS" ]; then
+          echo "All deployments successfully removed"
+          else
+          echo "Warning: Some deployments still exist:"
+          echo "$REMAINING_DEPLOYMENTS"
+          fi
 
       # 매니페스트 생성 및 적용
       - name: Generate and apply Kubernetes manifests
