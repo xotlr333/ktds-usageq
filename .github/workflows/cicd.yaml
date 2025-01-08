@@ -291,8 +291,7 @@ jobs:
         run: |
           echo "Cleaning up old ReplicaSets..."
           for app in usage-management-api usage-management-worker usage-query; do
-            current_rs=$(kubectl get deployment $app -n ${{ env.NAMESPACE }} -o=jsonpath='{.status.observedGeneration}')
-            kubectl delete rs $(kubectl get rs -n ${{ env.NAMESPACE }} -l app=$app -o name | grep -v $current_rs) -n ${{ env.NAMESPACE }} || true
+            kubectl get rs -n ${{ env.NAMESPACE }} -l app=$app --sort-by=.metadata.creationTimestamp -o name | head -n -3 | xargs -r kubectl delete -n ${{ env.NAMESPACE }}
           done
 
       # 서비스 엔드포인트 출력
