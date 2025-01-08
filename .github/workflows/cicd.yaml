@@ -286,6 +286,14 @@ jobs:
           wait_for_deployment usage-management-worker || exit 1
           wait_for_deployment usage-query || exit 1
 
+      # ReplicaSet 정리
+      - name: Clean up old ReplicaSets
+        run: |
+          echo "Cleaning up old ReplicaSets..."
+          for app in usage-management-api usage-management-worker usage-query; do
+            kubectl get rs -n ${{ env.NAMESPACE }} -l app=$app --sort-by=.metadata.creationTimestamp -o name | head -n -2 | xargs -r kubectl delete -n ${{ env.NAMESPACE }}
+          done
+
       # 서비스 엔드포인트 출력
       - name: Print service endpoints
         run: |

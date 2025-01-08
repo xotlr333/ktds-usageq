@@ -17,6 +17,9 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.amqp.support.converter.MessageConverter;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Configuration
 public class QueueConfig {
 
@@ -26,12 +29,17 @@ public class QueueConfig {
     @Value("${spring.rabbitmq.listener.simple.retry.max-attempts:3}")  // 3에서 1로 변경
     private int maxAttempts;
 
+    @Value("${spring.rabbitmq.listener.simple.concurrency:10}")
+    private int concurrency;
+
     @Bean
     public Queue usageQueue() {
-        return QueueBuilder.durable("usage.queue")
-                .withArgument("x-dead-letter-exchange", "usage.dlx")
-                .withArgument("x-dead-letter-routing-key", "usage.dead")
-                .build();
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-single-active-consumer", true);  // 단일 컨슈머 보장
+        args.put("x-dead-letter-exchange", "usage.dlx");
+        args.put("x-dead-letter-routing-key", "usage.dead");
+
+        return new Queue("usage.queue", true, false, false, args);
     }
 
     @Bean
@@ -92,6 +100,11 @@ public class QueueConfig {
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setMessageConverter(messageConverter);
+        template.setConfirmCallback((correlation, ack, reason) -> {
+            if (!ack) {
+//                log.error("Message sending failed: {}", reason);
+            }
+        });
         return template;
     }
 
@@ -102,8 +115,10 @@ public class QueueConfig {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(messageConverter);
-        factory.setDefaultRequeueRejected(false);
-        factory.setErrorHandler(new ConditionalRejectingErrorHandler());
+        factory.setConcurrentConsumers(1); // 단일 컨슈머로 설정
+        factory.setMaxConcurrentConsumers(1);
+        factory.setPrefetchCount(1); // 메시지 순차 처리를 위해 1로 설정
+        factory.setAcknowledgeMode(AcknowledgeMode.MANUAL); // 수동 ACK 모드
 
         if (retryEnabled) {
             factory.setAdviceChain(RetryInterceptorBuilder.stateless()
