@@ -1,5 +1,7 @@
 package com.telco.management.api.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.telco.common.entity.Usage;
 import com.telco.common.dto.UsageUpdateRequest;
 import com.telco.management.api.mapper.UsageMapper;
@@ -11,8 +13,14 @@ import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageBuilder;
+import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.core.MessagePropertiesBuilder;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -52,7 +60,17 @@ public class UsageManagementService {
                     log.warn("<<존재하지 않는 상품번호 입니다.>> - Invalid product requested - userId: {}, prodId: {}",
                             request.getUserId(), usage.getProdId());
                 } else {
-                    rabbitTemplate.convertAndSend("usage.exchange", "usage.update", request);
+                    MessageProperties props = MessagePropertiesBuilder.newInstance()
+                            .setHeader("userId", request.getUserId())
+                            .setPriority(1)
+                            .build();
+
+                    Message message = MessageBuilder.withBody(
+                                    new ObjectMapper().writeValueAsBytes(request))
+                            .andProperties(props)
+                            .build();
+
+                    rabbitTemplate.convertAndSend("usage.exchange", "usage.update", message);
                     queuePublishCounter.increment();
                 }
 
@@ -65,6 +83,8 @@ public class UsageManagementService {
             queuePublishErrorCounter.increment();
             log.error("Failed to send message to queue", e);
             throw e;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         } finally {
             sample.stop(usageUpdateTimer);
         }

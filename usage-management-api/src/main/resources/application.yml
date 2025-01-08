@@ -6,7 +6,21 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
-
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 2000
+          max-attempts: 3
+          max-interval: 10000
+          multiplier: 2
+    template:
+      retry:
+        enabled: true
+        initial-interval: 2000
+        max-attempts: 3
+        max-interval: 10000
+        multiplier: 2
   datasource:
     url: ${DB_URL:jdbc:postgresql://20.249.197.182:5432/telecomdb}
     username: ${DB_USERNAME:telecomuser}
