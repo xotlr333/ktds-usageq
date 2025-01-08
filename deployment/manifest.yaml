@@ -12,7 +12,7 @@ spec:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1        # 배포 중 최대 1개의 추가 Pod 허용
-      maxUnavailable: 1  # 사용 불가능한 Pod는 허용하지 않음
+      maxUnavailable: 0  # 사용 불가능한 Pod는 허용하지 않음
   selector:
     matchLabels:
       app: usage-management-api
@@ -28,8 +28,8 @@ spec:
       containers:
         - name: usage-management-api
           # 컨테이너 이미지 지정
-          #          image: ${REGISTRY}/telecom/usage-management:${IMAGE_TAG}
-          image: usageqcr.azurecr.io/telecom/usage-management-api:latest
+          image: ${REGISTRY}/telecom/usage-management:${IMAGE_TAG}
+#          image: usageqcr.azurecr.io/telecom/usage-management-api:latest
           imagePullPolicy: Always # 항상 최신 이미지 사용
           resources: # 리소스 제한 설정
             requests:
@@ -133,7 +133,7 @@ spec:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1        # 배포 중 최대 1개의 추가 Pod 허용
-      maxUnavailable: 1  # 사용 불가능한 Pod는 허용하지 않음
+      maxUnavailable: 0  # 사용 불가능한 Pod는 허용하지 않음
   selector:
     matchLabels:
       app: usage-management-worker
@@ -149,8 +149,8 @@ spec:
       containers:
         - name: usage-management-worker
           # 컨테이너 이미지 지정
-          #          image: ${REGISTRY}/telecom/usage-management:${IMAGE_TAG}
-          image: usageqcr.azurecr.io/telecom/usage-management-worker:latest
+          image: ${REGISTRY}/telecom/usage-management:${IMAGE_TAG}
+#          image: usageqcr.azurecr.io/telecom/usage-management-worker:latest
           imagePullPolicy: Always # 항상 최신 이미지 사용
           resources: # 리소스 제한 설정
             requests:
@@ -254,7 +254,7 @@ spec:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1        # 배포 중 최대 1개의 추가 Pod 허용
-      maxUnavailable: 1  # 사용 불가능한 Pod는 허용하지 않음
+      maxUnavailable: 0  # 사용 불가능한 Pod는 허용하지 않음
   selector:
     matchLabels:
       app: usage-query
@@ -269,8 +269,8 @@ spec:
     spec:
       containers:
         - name: usage-query
-          #          image: ${REGISTRY}/telecom/usage-query:${IMAGE_TAG}
-          image: usageqcr.azurecr.io/telecom/usage-query:latest
+          image: ${REGISTRY}/telecom/usage-query:${IMAGE_TAG}
+#          image: usageqcr.azurecr.io/telecom/usage-query:latest
           imagePullPolicy: Always
           resources:
             requests:
