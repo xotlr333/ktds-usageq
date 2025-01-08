@@ -101,13 +101,22 @@ public class UsageQueueConsumer {
                     request.getUserId(), e.getMessage());
 //            throw e;
         } finally {
-            workerusageUpdateTimer.stop(usageUpdateTimer);
+            try {
+                // Lock 해제는 반드시 수행
+                if (lockAcquired) {
+                    userLock.unlock();
+                }
+            } finally {
+                // 처리시간 측정 완료
+                workerusageUpdateTimer.stop(usageUpdateTimer);
+            }
         }
     }
 
     private Lock getUserLock(String userId) {
         // 사용자 ID를 해시하여 특정 Lock에 매핑
         int bucketId = Math.abs(userId.hashCode() % 100); // 100개의 Lock bucket 사용
+        log.info("userLock========================: {}", bucketId);
         return userLocks.computeIfAbsent(bucketId, k -> new ReentrantLock());
     }
 
