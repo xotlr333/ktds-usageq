@@ -153,10 +153,10 @@ spec:
           resources: # 리소스 제한 설정
             requests:
               cpu: "200m"
-              memory: "384Mi"
+              memory: "512Mi"
             limits:
               cpu: "500m"
-              memory: "768Mi"
+              memory: "1Gi"
           env:
             - name: TZ
               value: "Asia/Seoul"
@@ -242,10 +242,10 @@ spec:
           resources:
             requests:
               cpu: "200m"
-              memory: "384Mi"
+              memory: "512Mi"
             limits:
               cpu: "500m"
-              memory: "768Mi"
+              memory: "1Gi"
           env:
             - name: TZ
               value: "Asia/Seoul"
