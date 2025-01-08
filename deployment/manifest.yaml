@@ -28,7 +28,7 @@ spec:
       containers:
         - name: usage-management-api
           # 컨테이너 이미지 지정
-          image: ${REGISTRY}/telecom/usage-management:${IMAGE_TAG}
+          image: ${REGISTRY}/telecom/usage-management-api:${IMAGE_TAG}
 #          image: usageqcr.azurecr.io/telecom/usage-management-api:latest
           imagePullPolicy: Always # 항상 최신 이미지 사용
           resources: # 리소스 제한 설정
@@ -149,7 +149,7 @@ spec:
       containers:
         - name: usage-management-worker
           # 컨테이너 이미지 지정
-          image: ${REGISTRY}/telecom/usage-management:${IMAGE_TAG}
+          image: ${REGISTRY}/telecom/usage-management-worker:${IMAGE_TAG}
 #          image: usageqcr.azurecr.io/telecom/usage-management-worker:latest
           imagePullPolicy: Always # 항상 최신 이미지 사용
           resources: # 리소스 제한 설정
