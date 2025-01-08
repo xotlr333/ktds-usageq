@@ -11,8 +11,8 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 1        # 배포 중 최대 1개의 추가 Pod 허용
-      maxUnavailable: 0  # 사용 불가능한 Pod는 허용하지 않음
+      maxSurge: 2        # 배포 중 최대 1개의 추가 Pod 허용
+      maxUnavailable: 1  # 사용 불가능한 Pod는 허용하지 않음
   selector:
     matchLabels:
       app: usage-management-api
@@ -132,8 +132,8 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 1        # 배포 중 최대 1개의 추가 Pod 허용
-      maxUnavailable: 0  # 사용 불가능한 Pod는 허용하지 않음
+      maxSurge: 2        # 배포 중 최대 1개의 추가 Pod 허용
+      maxUnavailable: 1  # 사용 불가능한 Pod는 허용하지 않음
   selector:
     matchLabels:
       app: usage-management-worker
@@ -253,8 +253,8 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 1        # 배포 중 최대 1개의 추가 Pod 허용
-      maxUnavailable: 0  # 사용 불가능한 Pod는 허용하지 않음
+      maxSurge: 2        # 배포 중 최대 1개의 추가 Pod 허용
+      maxUnavailable: 1  # 사용 불가능한 Pod는 허용하지 않음
   selector:
     matchLabels:
       app: usage-query
