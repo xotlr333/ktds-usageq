@@ -30,7 +30,7 @@ public class UsageQueryServiceImpl implements IUsageQueryService {
 
     @Override
     public ResponseEntity<ApiResponse<UsageDTO>> getUserUsage(String userId) {
-        Timer.Sample totalTimer = Timer.start();
+        Timer.Sample queryusageQueryTimer = Timer.start();
         try {
             usageRequestCounter.increment();
             // 1. 캐시에서 조회 시도
@@ -39,7 +39,7 @@ public class UsageQueryServiceImpl implements IUsageQueryService {
             if (cachedUsage.isPresent()) {
                 cacheHitCounter.increment();
                 log.info("Cache Hit - userId: {}", userId);
-                totalTimer.stop(usageQueryTimer);
+                queryusageQueryTimer.stop(usageQueryTimer);
                 return ResponseEntity.ok(ApiResponse.success(cachedUsage.get()));
             }
 
@@ -69,17 +69,18 @@ public class UsageQueryServiceImpl implements IUsageQueryService {
             } catch (Exception e) {
                 log.error("Failed to update cache - userId: {}, error: {}", userId, e.getMessage());
             }
-            totalTimer.stop(usageQueryTimer);
 
+            queryusageQueryTimer.stop(usageQueryTimer);
             return ResponseEntity.ok(ApiResponse.success(usage.get()));
+
         } catch (InvalidUserException e) {
-            totalTimer.stop(usageQueryTimer);
+            queryusageQueryTimer.stop(usageQueryTimer);
             log.error("Invalid user requested - userId: {}", userId);
             return ResponseEntity
                     .status(404)
                     .body(ApiResponse.error(404, e.getMessage()));
         } catch (Exception e) {
-            totalTimer.stop(usageQueryTimer);
+            queryusageQueryTimer.stop(usageQueryTimer);
             log.error("Error while getting usage data - userId: {}, error: {}", userId, e.getMessage());
             return ResponseEntity
                     .status(500)

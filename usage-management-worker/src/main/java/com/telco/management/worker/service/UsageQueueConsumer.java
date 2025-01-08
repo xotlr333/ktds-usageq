@@ -38,7 +38,7 @@ public class UsageQueueConsumer {
             returnExceptions = "false")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processUsageUpdate(UsageUpdateRequest request) {
-        Timer.Sample totalProcessingSample = Timer.start();
+        Timer.Sample workerusageUpdateTimer = Timer.start();
 
         log.info("Received message from queue: {}", request);
         try {
@@ -60,9 +60,9 @@ public class UsageQueueConsumer {
 
                     Usage savedUsage = usageRepository.save(usage);
 
-                    Timer.Sample cacheSample = Timer.start();
+                    Timer.Sample workercacheUpdateTimer = Timer.start();
                     updateCache(savedUsage);
-                    cacheSample.stop(cacheUpdateTimer);
+                    workercacheUpdateTimer.stop(cacheUpdateTimer);
 
                     usageUpdateSuccessCounter.increment();
                     log.info("Successfully processed usage update - userId: {}, type: {}, createdAt: {}, updatedAt: {}",
@@ -79,7 +79,7 @@ public class UsageQueueConsumer {
                     request.getUserId(), e.getMessage());
             throw e;
         } finally {
-            totalProcessingSample.stop(usageUpdateTimer);
+            workerusageUpdateTimer.stop(usageUpdateTimer);
         }
     }
 
