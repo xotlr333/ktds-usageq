@@ -16,6 +16,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -33,16 +39,32 @@ public class UsageQueueConsumer {
     private final Counter usageUpdateFailureCounter;
     private final Counter usageInvalidErrorCounter ;
 
+    // Consumer 그룹별 처리를 위한 ConcurrentMap 추가
+    private final ConcurrentMap<Integer, Lock> userLocks = new ConcurrentHashMap<>();
+
     @RabbitListener(queues = "usage.queue",
             containerFactory = "rabbitListenerContainerFactory",
             returnExceptions = "false")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processUsageUpdate(UsageUpdateRequest request) {
         Timer.Sample workerusageUpdateTimer = Timer.start();
+        String userId = request.getUserId();
+
+        // 사용자별 Lock 획득
+        Lock userLock = getUserLock(userId);
+        boolean lockAcquired = false;
 
         log.info("Received message from queue: {}", request);
         try {
-            Usage usage = usageRepository.findByUserIdWithLock(request.getUserId());
+            // 최대 100ms 동안 Lock 획득 시도
+            lockAcquired = userLock.tryLock(100, TimeUnit.MILLISECONDS);
+            if (!lockAcquired) {
+                throw new RuntimeException("Unable to acquire lock for user: " + userId);
+            }
+
+            log.info("Received message from queue: {}", request);
+
+            Usage usage = usageRepository.findByUserIdWithLock(userId);
 
             if (usage != null) {
                 String prodId = usage.getProdId();
@@ -77,10 +99,16 @@ public class UsageQueueConsumer {
             usageUpdateFailureCounter.increment();
             log.error("Failed to process usage update - userId: {}, error: {}",
                     request.getUserId(), e.getMessage());
-            throw e;
+//            throw e;
         } finally {
             workerusageUpdateTimer.stop(usageUpdateTimer);
         }
+    }
+
+    private Lock getUserLock(String userId) {
+        // 사용자 ID를 해시하여 특정 Lock에 매핑
+        int bucketId = Math.abs(userId.hashCode() % 100); // 100개의 Lock bucket 사용
+        return userLocks.computeIfAbsent(bucketId, k -> new ReentrantLock());
     }
 
     private void updateCache(Usage usage) {

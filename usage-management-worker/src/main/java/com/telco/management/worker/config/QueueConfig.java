@@ -26,6 +26,9 @@ public class QueueConfig {
     @Value("${spring.rabbitmq.listener.simple.retry.max-attempts:3}")  // 3에서 1로 변경
     private int maxAttempts;
 
+    @Value("${spring.rabbitmq.listener.simple.concurrency:10}")
+    private int concurrency;
+
     @Bean
     public Queue usageQueue() {
         return QueueBuilder.durable("usage.queue")
@@ -103,6 +106,8 @@ public class QueueConfig {
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(messageConverter);
         factory.setDefaultRequeueRejected(false);
+        factory.setPrefetchCount(250); // 성능을 위해 높은 prefetch count 유지
+        factory.setConcurrentConsumers(concurrency); // 동시 처리 consumer 수 설정
         factory.setErrorHandler(new ConditionalRejectingErrorHandler());
 
         if (retryEnabled) {
