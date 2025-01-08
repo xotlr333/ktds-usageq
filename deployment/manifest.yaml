@@ -11,7 +11,7 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 2        # 배포 중 최대 1개의 추가 Pod 허용
+      maxSurge: 1        # 배포 중 최대 1개의 추가 Pod 허용
       maxUnavailable: 1  # 사용 불가능한 Pod는 허용하지 않음
   selector:
     matchLabels:
@@ -48,19 +48,19 @@ spec:
                 name: app-config
             - secretRef:
                 name: app-secret
----
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: usage-management-api-budget
-  namespace: usageq-ns
-  labels:
-    app: usage-management-api
-spec:
-  minAvailable: 1  # 항상 최소 1개의 Pod는 가용상태 유지
-  selector:
-    matchLabels:
-      app: usage-management-api
+#---
+#apiVersion: policy/v1
+#kind: PodDisruptionBudget
+#metadata:
+#  name: usage-management-api-budget
+#  namespace: usageq-ns
+#  labels:
+#    app: usage-management-api
+#spec:
+#  minAvailable: 1  # 항상 최소 1개의 Pod는 가용상태 유지
+#  selector:
+#    matchLabels:
+#      app: usage-management-api
 ---
 # 로드밸런서 생성
 apiVersion: v1
@@ -132,7 +132,7 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 2        # 배포 중 최대 1개의 추가 Pod 허용
+      maxSurge: 1        # 배포 중 최대 1개의 추가 Pod 허용
       maxUnavailable: 1  # 사용 불가능한 Pod는 허용하지 않음
   selector:
     matchLabels:
@@ -169,19 +169,19 @@ spec:
                 name: app-config
             - secretRef:
                 name: app-secret
----
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: usage-management-worker-budget
-  namespace: usageq-ns
-  labels:
-    app: usage-management-worker
-spec:
-  minAvailable: 1  # 항상 최소 1개의 Pod는 가용상태 유지
-  selector:
-    matchLabels:
-      app: usage-management-worker
+#---
+#apiVersion: policy/v1
+#kind: PodDisruptionBudget
+#metadata:
+#  name: usage-management-worker-budget
+#  namespace: usageq-ns
+#  labels:
+#    app: usage-management-worker
+#spec:
+#  minAvailable: 1  # 항상 최소 1개의 Pod는 가용상태 유지
+#  selector:
+#    matchLabels:
+#      app: usage-management-worker
 ---
 # 로드밸런서 생성
 apiVersion: v1
@@ -253,7 +253,7 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 2        # 배포 중 최대 1개의 추가 Pod 허용
+      maxSurge: 1        # 배포 중 최대 1개의 추가 Pod 허용
       maxUnavailable: 1  # 사용 불가능한 Pod는 허용하지 않음
   selector:
     matchLabels:
@@ -289,19 +289,19 @@ spec:
                 name: app-config
             - secretRef:
                 name: app-secret
----
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: usage-query-budget
-  namespace: usageq-ns
-  labels:
-    app: usage-query
-spec:
-  minAvailable: 1  # 항상 최소 1개의 Pod는 가용상태 유지
-  selector:
-    matchLabels:
-      app: usage-query
+#---
+#apiVersion: policy/v1
+#kind: PodDisruptionBudget
+#metadata:
+#  name: usage-query-budget
+#  namespace: usageq-ns
+#  labels:
+#    app: usage-query
+#spec:
+#  minAvailable: 1  # 항상 최소 1개의 Pod는 가용상태 유지
+#  selector:
+#    matchLabels:
+#      app: usage-query
 ---
 apiVersion: v1
 kind: Service
