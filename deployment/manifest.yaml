@@ -108,19 +108,19 @@ spec:
 ---
 # Usage Management Worker
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: usage-management-worker
   namespace: usageq-ns
   labels:
     app: usage-management-worker
 spec:
+  serviceName: usage-management-worker-headless # StatefulSet에 필수 항목
   replicas: 8 # Pod 복제본 수
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 1        # 배포 중 최대 1개의 추가 Pod 허용
-      maxUnavailable: 0  # 사용 불가능한 Pod는 허용하지 않음
+      partition: 0   # 0부터 순차적으로 업데이트
   selector:
     matchLabels:
       app: usage-management-worker
@@ -133,7 +133,6 @@ spec:
         prometheus.io/path: "/actuator/prometheus"
         prometheus.io/port: "8080"  # **반드시 application.yml의 server.port와 동일해야 합니다**
     spec:
-      hostname: usage-management-worker-${POD_INDEX}
       containers:
         - name: usage-management-worker
           # 컨테이너 이미지 지정
@@ -152,18 +151,26 @@ spec:
               value: "Asia/Seoul"
             - name: JAVA_OPTS
               value: "-Xms256m -Xmx512m -XX:+UseG1GC"
-            - name: POD_INDEX
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-              substrings:
-                - start: 24
-                  end: 25
           envFrom: # 환경변수 참조
             - configMapRef:
                 name: app-config
             - secretRef:
                 name: app-secret
+---
+# Headless Service for StatefulSet
+apiVersion: v1
+kind: Service
+metadata:
+  name: usage-management-worker-headless
+  labels:
+    app: usage-management-worker
+spec:
+  clusterIP: None # Headless Service 설정
+  selector:
+    app: usage-management-worker
+  ports:
+    - port: 8080
+      targetPort: 8080
 ---
 # 로드밸런서 생성
 apiVersion: v1
@@ -204,7 +211,7 @@ spec:
           periodSeconds: 15
   scaleTargetRef: # 확장 대상 지정
     apiVersion: apps/v1
-    kind: Deployment
+    kind: StatefulSet
     name: usage-management-worker
   minReplicas: 1 # 최소 Pod 수
   maxReplicas: 10 # 최대 Pod 수
