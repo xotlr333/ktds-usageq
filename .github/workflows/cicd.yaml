@@ -225,32 +225,59 @@ jobs:
       # 배포 검증
       - name: Verify deployment
         run: |
-          echo "Verifying deployments..."
+          echo "Verifying deployments and statefulsets..."
           
-          # 배포 상태 검증 함수 
+          # 배포 상태 검증 함수 - Deployment용
           verify_deployment() {
             local deploy_name=$1
-            local max_attempts=10  # 20에서 10으로 감소
+            local max_attempts=10
             local attempt=1
-            local timeout=60s      # 120s에서 60s로 감소
+            local timeout=60s
           
             while [ $attempt -le $max_attempts ]; do
               echo "Checking $deploy_name deployment (attempt $attempt/$max_attempts)..."
           
               if kubectl rollout status deployment/$deploy_name -n ${{ env.NAMESPACE }} --timeout=$timeout; then
-                echo "$deploy_name deployment is ready"
+                echo "✅ $deploy_name deployment is ready"
                 return 0
               fi
           
               if [ $attempt -eq $max_attempts ]; then
-                echo "Failed to verify $deploy_name deployment"
+                echo "❌ Failed to verify $deploy_name deployment"
                 kubectl get deployment $deploy_name -n ${{ env.NAMESPACE }} -o wide
                 kubectl get pods -n ${{ env.NAMESPACE }} -l app=$deploy_name -o wide
                 return 1
               fi
           
               attempt=$((attempt + 1))
-              sleep 10  # 20초에서 10초로 감소
+              sleep 10
+            done
+          }
+          
+          # 배포 상태 검증 함수 - StatefulSet용
+          verify_statefulset() {
+            local statefulset_name=$1
+            local max_attempts=10
+            local attempt=1
+            local timeout=60s
+          
+            while [ $attempt -le $max_attempts ]; do
+              echo "Checking $statefulset_name statefulset (attempt $attempt/$max_attempts)..."
+          
+              if kubectl rollout status statefulset/$statefulset_name -n ${{ env.NAMESPACE }} --timeout=$timeout; then
+                echo "✅ $statefulset_name statefulset is ready"
+                return 0
+              fi
+          
+              if [ $attempt -eq $max_attempts ]; then
+                echo "❌ Failed to verify $statefulset_name statefulset"
+                kubectl get statefulset $statefulset_name -n ${{ env.NAMESPACE }} -o wide
+                kubectl get pods -n ${{ env.NAMESPACE }} -l app=$statefulset_name -o wide
+                return 1
+              fi
+          
+              attempt=$((attempt + 1))
+              sleep 10
             done
           }
           
@@ -259,7 +286,7 @@ jobs:
             verify_deployment "usage-management-api" 
           } & 
           {
-            verify_deployment "usage-management-worker"
+            verify_statefulset "usage-management-worker"  # StatefulSet 검증 함수 사용
           } &
           {
             verify_deployment "usage-query"
