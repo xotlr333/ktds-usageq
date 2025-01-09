@@ -225,41 +225,53 @@ jobs:
       # 배포 검증
       - name: Verify deployment
         run: |
-          echo "Checking deployment status..."
+          echo "Verifying deployments..."
           
-          # Function to wait for deployment
-          wait_for_deployment() {
+          # 배포 상태 검증 함수 
+          verify_deployment() {
             local deploy_name=$1
-            local max_attempts=20  # 10에서 20으로 증가
+            local max_attempts=10  # 20에서 10으로 감소
             local attempt=1
+            local timeout=60s      # 120s에서 60s로 감소
           
             while [ $attempt -le $max_attempts ]; do
-            echo "Checking $deploy_name deployment (attempt $attempt/$max_attempts)..."
+              echo "Checking $deploy_name deployment (attempt $attempt/$max_attempts)..."
           
-            # 배포 상태 확인 타임아웃 증가
-            if kubectl rollout status deployment/$deploy_name -n ${{ env.NAMESPACE }} --timeout=120s; then
-            return 0
-            fi
+              if kubectl rollout status deployment/$deploy_name -n ${{ env.NAMESPACE }} --timeout=$timeout; then
+                echo "$deploy_name deployment is ready"
+                return 0
+              fi
           
-            # 실패 시 Pod 로그 출력
-            echo "Deployment status:"
-            kubectl get deployment $deploy_name -n ${{ env.NAMESPACE }} -o wide
-            echo "Pod status:"
-            kubectl get pods -n ${{ env.NAMESPACE }} -l app=$deploy_name -o wide
-            echo "Pod logs:"
-            kubectl logs -n ${{ env.NAMESPACE }} -l app=$deploy_name --tail=50
+              if [ $attempt -eq $max_attempts ]; then
+                echo "Failed to verify $deploy_name deployment"
+                kubectl get deployment $deploy_name -n ${{ env.NAMESPACE }} -o wide
+                kubectl get pods -n ${{ env.NAMESPACE }} -l app=$deploy_name -o wide
+                return 1
+              fi
           
-            attempt=$((attempt + 1))
-            sleep 20  # 대기 시간 증가
+              attempt=$((attempt + 1))
+              sleep 10  # 20초에서 10초로 감소
             done
-          
-            return 1
           }
           
-          # 각 서비스 배포 검증
-          wait_for_deployment usage-management-api || exit 1
-          wait_for_deployment usage-management-worker || exit 1
-          wait_for_deployment usage-query || exit 1
+          # 병렬로 배포 상태 확인
+          {
+            verify_deployment "usage-management-api" 
+          } & 
+          {
+            verify_deployment "usage-management-worker"
+          } &
+          {
+            verify_deployment "usage-query"
+          } &
+          
+          # 모든 백그라운드 작업이 완료될 때까지 대기
+          wait
+          
+          # 모든 작업의 종료 코드 확인
+          for job in $(jobs -p); do
+            wait $job || exit 1
+          done
 
       # ReplicaSet 정리
       - name: Clean up old ReplicaSets
