@@ -17,7 +17,7 @@ public class QueueConfig {
     @Bean
     public Queue usageQueue() {
         return QueueBuilder.durable("usage.queue")
-                .withArgument("x-single-active-consumer", true)
+//                .withArgument("x-single-active-consumer", true)
                 .withArgument("x-dead-letter-exchange", "usage.dlx")
                 .withArgument("x-dead-letter-routing-key", "usage.dead")
                 .build();
@@ -39,7 +39,7 @@ public class QueueConfig {
         Queue[] queues = new Queue[partitionCount];
         for (int i = 0; i < partitionCount; i++) {
             queues[i] = QueueBuilder.durable("usage.queue." + i)
-                    .withArgument("x-single-active-consumer", true)
+//                    .withArgument("x-single-active-consumer", true)
                     .withArgument("x-dead-letter-exchange", "usage.dlx")
                     .withArgument("x-dead-letter-routing-key", "usage.dead." + i)
                     .build();

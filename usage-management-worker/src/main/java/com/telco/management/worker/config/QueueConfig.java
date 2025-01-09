@@ -39,7 +39,7 @@ public class QueueConfig {
         Map<String, Queue> queues = new HashMap<>();
         for (int i = 0; i < partitionCount; i++) {
             Queue queue = QueueBuilder.durable("usage.queue." + i)
-                    .withArgument("x-single-active-consumer", true)
+//                    .withArgument("x-single-active-consumer", true)
                     .withArgument("x-dead-letter-exchange", "usage.dlx")
                     .withArgument("x-dead-letter-routing-key", "usage.dead." + i)
                     .build();
@@ -65,7 +65,7 @@ public class QueueConfig {
     @Bean
     public Queue usageQueue() {
         return QueueBuilder.durable("usage.queue")
-                .withArgument("x-single-active-consumer", true)
+//                .withArgument("x-single-active-consumer", true)
                 .withArgument("x-dead-letter-exchange", "usage.dlx")
                 .withArgument("x-dead-letter-routing-key", "usage.dead")
                 .build();
