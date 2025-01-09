@@ -117,7 +117,7 @@ metadata:
 spec:
   serviceName: usage-management-worker-headless # StatefulSet에 필수 항목
   replicas: 8 # Pod 복제본 수
-  strategy:
+  updateStrategy:
     type: RollingUpdate
     rollingUpdate:
       partition: 0   # 0부터 순차적으로 업데이트
@@ -213,7 +213,7 @@ spec:
     apiVersion: apps/v1
     kind: StatefulSet
     name: usage-management-worker
-  minReplicas: 1 # 최소 Pod 수
+  minReplicas: 8 # 최소 Pod 수
   maxReplicas: 10 # 최대 Pod 수
   metrics: # 확장 기준 설정
     - type: Resource
