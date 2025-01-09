@@ -138,6 +138,8 @@ public class QueueConfig {
             MessageConverter messageConverter) {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
+        factory.setConcurrentConsumers(4);  // 기본 Consumer 수
+        factory.setMaxConcurrentConsumers(8);  // 최대 Consumer 수
         factory.setMessageConverter(messageConverter);
         factory.setDefaultRequeueRejected(false);
         factory.setErrorHandler(new ConditionalRejectingErrorHandler());

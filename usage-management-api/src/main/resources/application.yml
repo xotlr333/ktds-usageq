@@ -9,8 +9,8 @@ spring:
     listener:
       simple:
         prefetch: 1  # 순서 보장을 위해 prefetch 값을 1로 설정
-        concurrency: 1
-        max-concurrency: 1
+        concurrency: 4
+        max-concurrency: 8
         retry:
           enabled: false
           initial-interval: 1000
