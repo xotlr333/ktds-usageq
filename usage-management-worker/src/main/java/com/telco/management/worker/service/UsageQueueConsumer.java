@@ -33,7 +33,9 @@ public class UsageQueueConsumer {
     private final Counter usageUpdateFailureCounter;
     private final Counter usageInvalidErrorCounter ;
 
-    @RabbitListener(queues = "usage.queue",
+    @RabbitListener(queues = {
+            "usage.queue.0", "usage.queue.1", "usage.queue.2", "usage.queue.3",
+            "usage.queue.4", "usage.queue.5", "usage.queue.6", "usage.queue.7"},
             containerFactory = "rabbitListenerContainerFactory",
             returnExceptions = "false")
     @Transactional(propagation = Propagation.REQUIRES_NEW)

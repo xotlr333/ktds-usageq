@@ -19,6 +19,9 @@ spring:
     password: ${RABBITMQ_PASSWORD:guest}
     listener:
       simple:
+        prefetch: 1  # 순서 보장을 위해 prefetch 값을 1로 설정
+        concurrency: 4
+        max-concurrency: 8
         retry:
           enabled: false
           initial-interval: 1000
@@ -54,3 +57,6 @@ management:
         http.server.requests: true
       slo:
         http.server.requests: 50ms,100ms,200ms
+app:
+  queue:
+    partitions: 8

@@ -6,7 +6,16 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
-
+    listener:
+      simple:
+        prefetch: 1  # 순서 보장을 위해 prefetch 값을 1로 설정
+        concurrency: 4
+        max-concurrency: 8
+        retry:
+          enabled: false
+          initial-interval: 1000
+          max-interval: 10000
+          multiplier: 2.0
   datasource:
     url: ${DB_URL:jdbc:postgresql://20.249.197.182:5432/telecomdb}
     username: ${DB_USERNAME:telecomuser}
@@ -43,3 +52,7 @@ management:
         http.server.requests: true
       slo:
         http.server.requests: 50ms,100ms,200ms
+
+app:
+  queue:
+    partitions: 8
