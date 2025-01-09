@@ -151,6 +151,10 @@ spec:
               value: "Asia/Seoul"
             - name: JAVA_OPTS
               value: "-Xms256m -Xmx512m -XX:+UseG1GC"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           envFrom: # 환경변수 참조
             - configMapRef:
                 name: app-config
