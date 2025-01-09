@@ -17,6 +17,11 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.amqp.support.converter.MessageConverter;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @Configuration
 public class QueueConfig {
 
@@ -26,9 +31,41 @@ public class QueueConfig {
     @Value("${spring.rabbitmq.listener.simple.retry.max-attempts:3}")  // 3에서 1로 변경
     private int maxAttempts;
 
+    @Value("${app.queue.partitions:8}")
+    private int partitionCount;
+
+    @Bean
+    public Map<String, Queue> partitionedQueues() {
+        Map<String, Queue> queues = new HashMap<>();
+        for (int i = 0; i < partitionCount; i++) {
+            Queue queue = QueueBuilder.durable("usage.queue." + i)
+                    .withArgument("x-single-active-consumer", true)
+                    .withArgument("x-dead-letter-exchange", "usage.dlx")
+                    .withArgument("x-dead-letter-routing-key", "usage.dead." + i)
+                    .build();
+            queues.put("usage.queue." + i, queue);
+        }
+        return queues;
+    }
+
+    @Bean
+    public List<Binding> queueBindings() {
+        List<Binding> bindings = new ArrayList<>();
+        Map<String, Queue> queues = partitionedQueues();
+
+        for (int i = 0; i < partitionCount; i++) {
+            Queue queue = queues.get("usage.queue." + i);
+            bindings.add(BindingBuilder.bind(queue)
+                    .to(usageExchange())
+                    .with("usage.update." + i));
+        }
+        return bindings;
+    }
+
     @Bean
     public Queue usageQueue() {
         return QueueBuilder.durable("usage.queue")
+                .withArgument("x-single-active-consumer", true)
                 .withArgument("x-dead-letter-exchange", "usage.dlx")
                 .withArgument("x-dead-letter-routing-key", "usage.dead")
                 .build();

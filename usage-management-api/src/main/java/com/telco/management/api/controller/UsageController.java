@@ -28,4 +28,28 @@ public class UsageController {
         usageManagementService.updateUsage(request);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+
+    @PostMapping("/test/sequential/{userId}")
+    public ResponseEntity<ApiResponse<Void>> testSequentialUpdates(
+            @PathVariable String userId,
+            @RequestParam(defaultValue = "10") int count) {
+
+        for (int i = 0; i < count; i++) {
+            UsageUpdateRequest request = new UsageUpdateRequest();
+            request.setUserId(userId);
+            request.setType("V"); // Voice type
+            request.setAmount(i + 1); // 순차적으로 증가하는 값
+
+            usageManagementService.updateUsage(request);
+
+            // 각 요청 사이에 약간의 간격을 둠
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
 }

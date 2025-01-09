@@ -2,6 +2,7 @@ package com.telco.management.api.service;
 
 import com.telco.common.entity.Usage;
 import com.telco.common.dto.UsageUpdateRequest;
+import com.telco.management.api.config.ConsistentHashingConfig;
 import com.telco.management.api.mapper.UsageMapper;
 import com.telco.management.api.exception.BizException;
 import com.telco.management.api.repository.ProductRepository;
@@ -27,6 +28,7 @@ public class UsageManagementService {
     private final Counter usageInvalidErrorCounter;
     private final Counter queuePublishCounter;
     private final Counter queuePublishErrorCounter;
+    private final ConsistentHashingConfig hashingConfig;
 
     public void updateUsage(UsageUpdateRequest request) {
         Timer.Sample sample = Timer.start();
@@ -52,7 +54,10 @@ public class UsageManagementService {
                     log.warn("<<존재하지 않는 상품번호 입니다.>> - Invalid product requested - userId: {}, prodId: {}",
                             request.getUserId(), usage.getProdId());
                 } else {
-                    rabbitTemplate.convertAndSend("usage.exchange", "usage.update", request);
+                    String queueName = hashingConfig.getQueueName(request.getUserId());
+                    String routingKey = "usage.update." + queueName.substring(queueName.lastIndexOf('.') + 1);
+                    rabbitTemplate.convertAndSend("usage.exchange", routingKey, request);
+                    log.info("routingKey ======================== {}", routingKey);
                     queuePublishCounter.increment();
                 }
 
