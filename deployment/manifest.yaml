@@ -34,7 +34,7 @@ spec:
           resources: # 리소스 제한 설정
             requests:
               cpu: "500m"
-              memory: "512Mi"
+              memory: "768Mi"
             limits:
               cpu: "1000m"
               memory: "1Gi"
@@ -142,7 +142,7 @@ spec:
           resources: # 리소스 제한 설정
             requests:
               cpu: "500m"
-              memory: "512Mi"
+              memory: "768Mi"
             limits:
               cpu: "1000m"
               memory: "1Gi"
@@ -249,7 +249,7 @@ spec:
           resources:
             requests:
               cpu: "500m"
-              memory: "512Mi"
+              memory: "768Mi"
             limits:
               cpu: "1000m"
               memory: "1Gi"
