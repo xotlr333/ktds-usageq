@@ -115,7 +115,7 @@ metadata:
   labels:
     app: usage-management-worker
 spec:
-  replicas: 1 # Pod 복제본 수
+  replicas: 8 # Pod 복제본 수
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -133,6 +133,7 @@ spec:
         prometheus.io/path: "/actuator/prometheus"
         prometheus.io/port: "8080"  # **반드시 application.yml의 server.port와 동일해야 합니다**
     spec:
+      hostname: usage-management-worker-${POD_INDEX}
       containers:
         - name: usage-management-worker
           # 컨테이너 이미지 지정
@@ -151,6 +152,13 @@ spec:
               value: "Asia/Seoul"
             - name: JAVA_OPTS
               value: "-Xms256m -Xmx512m -XX:+UseG1GC"
+            - name: POD_INDEX
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+              substrings:
+                - start: 24
+                  end: 25
           envFrom: # 환경변수 참조
             - configMapRef:
                 name: app-config
