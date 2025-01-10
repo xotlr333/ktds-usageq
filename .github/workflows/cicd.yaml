@@ -272,7 +272,6 @@ jobs:
               if [ $attempt -eq $max_attempts ]; then
                 echo "❌ Failed to verify $statefulset_name statefulset"
                 kubectl get statefulset $statefulset_name -n ${{ env.NAMESPACE }} -o wide
-#                kubectl get pods -n ${{ env.NAMESPACE }} -l app=$statefulset_name -o wide
                 return 1
               fi
           
