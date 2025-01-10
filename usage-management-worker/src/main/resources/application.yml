@@ -61,3 +61,7 @@ management:
 app:
   queue:
     partitions: 8
+    prefix: usage.queue.
+  pod:
+    index: ${POD_INDEX}
+  pod_name: ${POD_NAME:0}

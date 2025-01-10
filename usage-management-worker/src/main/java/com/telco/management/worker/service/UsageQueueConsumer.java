@@ -12,6 +12,7 @@ import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,9 @@ public class UsageQueueConsumer {
     private final Counter usageUpdateSuccessCounter;
     private final Counter usageUpdateFailureCounter;
     private final Counter usageInvalidErrorCounter ;
+
+    @Value("${app.pod_name:unknown}")
+    private String podName;
 
     @RabbitListener(queues = {
             "usage.queue.0", "usage.queue.1", "usage.queue.2", "usage.queue.3",
@@ -61,6 +65,8 @@ public class UsageQueueConsumer {
                             .ifPresent(usage::setProduct);
 
                     Usage savedUsage = usageRepository.save(usage);
+
+                    log.info("====================={}", podName);
 
                     Timer.Sample workercacheUpdateTimer = Timer.start();
                     updateCache(savedUsage);

@@ -34,6 +34,9 @@ public class QueueConfig {
     @Value("${app.queue.partitions:8}")
     private int partitionCount;
 
+    @Value("${POD_NAME:unknown}")
+    private String podName;
+
     @Bean
     public Map<String, Queue> partitionedQueues() {
         Map<String, Queue> queues = new HashMap<>();
