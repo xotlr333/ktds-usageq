@@ -64,4 +64,4 @@ app:
     prefix: usage.queue.
   pod:
     index: ${POD_INDEX}
-  pod_name: ${POD_NAME:0}
+  pod_name: ${POD_NAME:usage-management-0}

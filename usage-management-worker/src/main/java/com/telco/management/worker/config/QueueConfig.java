@@ -34,8 +34,34 @@ public class QueueConfig {
     @Value("${app.queue.partitions:8}")
     private int partitionCount;
 
-    @Value("${POD_NAME:unknown}")
+    @Value("${app.pod_name:usage-management-0}")
     private String podName;
+
+    private static final int MAX_QUEUE_NUMBER = 8;
+
+    // 현재 pod의 매핑된 큐 번호 반환
+    @Bean
+    public Integer currentQueueNumber() {
+        try {
+            int podNumber = Integer.parseInt(podName.substring(podName.lastIndexOf("-") + 1));
+            return Math.abs(podNumber % MAX_QUEUE_NUMBER);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    // 모든 큐 정의
+    @Bean
+    public Map<Integer, Queue> usageQueues() {
+        Map<Integer, Queue> queues = new HashMap<>();
+        for (int i = 0; i < MAX_QUEUE_NUMBER; i++) {
+            queues.put(i, QueueBuilder.durable("usage.queue." + i)
+                    .withArgument("x-dead-letter-exchange", "usage.dlx")
+                    .withArgument("x-dead-letter-routing-key", "usage.dead." + i)
+                    .build());
+        }
+        return queues;
+    }
 
     @Bean
     public Map<String, Queue> partitionedQueues() {

@@ -34,12 +34,23 @@ public class UsageQueueConsumer {
     private final Counter usageUpdateFailureCounter;
     private final Counter usageInvalidErrorCounter ;
 
-    @Value("${app.pod_name:unknown}")
+    @Value("${app.pod_name:usage-management-0}")
     private String podName;
 
-    @RabbitListener(queues = {
-            "usage.queue.0", "usage.queue.1", "usage.queue.2", "usage.queue.3",
-            "usage.queue.4", "usage.queue.5", "usage.queue.6", "usage.queue.7"},
+    private static final int MAX_QUEUE_NUMBER = 8;
+
+    private String currentQueueNumber() {
+        try {
+            int podNumber = Integer.parseInt(podName.substring(podName.lastIndexOf("-") + 1));
+            int mappedNumber = Math.abs(podNumber % MAX_QUEUE_NUMBER);
+
+            return "usage.queue." + mappedNumber;
+        } catch (Exception e) {
+            return "usage.queue.0";
+        }
+    }
+
+    @RabbitListener(queues = "usage.queue.#{@currentQueueNumber}",
             containerFactory = "rabbitListenerContainerFactory",
             returnExceptions = "false")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -60,13 +71,14 @@ public class UsageQueueConsumer {
                     UsageType usageType = UsageType.fromCode(request.getType());
                     usage.updateUsage(usageType, request.getAmount());
 
+                    log.info("[Pod: {}] Received message from queue {}: {}",
+                            podName, currentQueueNumber(), request);
+
                     // Product 정보 조회 및 설정 추가
                     productRepository.findByProdId(usage.getProdId())
                             .ifPresent(usage::setProduct);
 
                     Usage savedUsage = usageRepository.save(usage);
-
-                    log.info("====================={}", podName);
 
                     Timer.Sample workercacheUpdateTimer = Timer.start();
                     updateCache(savedUsage);
